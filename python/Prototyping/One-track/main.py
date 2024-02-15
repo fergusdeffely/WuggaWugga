@@ -9,10 +9,9 @@ from audio import Audio
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
-level = Level(level_map, screen)
-pygame.time.set_timer(SPAWN_TIMER_EVENT, 1000)
-
 audio = Audio()
+level = Level(level_map, screen, audio)
+pygame.time.set_timer(SPAWN_TIMER_EVENT, 1000)
 
 while True:
   for event in pygame.event.get():
@@ -21,9 +20,11 @@ while True:
       sys.exit()
     elif event.type == SPAWN_TIMER_EVENT:
       level.spawn_beatbug()
-
-  audio.play_sound("onekick")
-      
+    elif event.type == pygame.MOUSEBUTTONUP:
+      print(f"MouseButtonUp Event: {event.button} at {screen_to_grid(event.pos)}")
+      if event.button == 1:
+        level.handle_click(event)
+    
   screen.fill("black")
   
   level.draw()

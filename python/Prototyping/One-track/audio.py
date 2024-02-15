@@ -17,10 +17,13 @@ class Audio():
         self.sounds["onekick"] = sound
 
 
-    def play_sound(self, name):
+    def play_sound(self, name, maxtime=0):
         sound = self.sounds.get(name)
         if sound != None:
             if self.channel == None:
-                self.channel = sound.play()
+                self.channel = sound.play(maxtime=maxtime)
             elif self.channel.get_busy() == False:
-                self.channel = sound.play()
+                self.channel = sound.play(maxtime=maxtime)
+
+    def play_beat(self):
+        self.play_sound("onekick", 200)
