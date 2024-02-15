@@ -7,7 +7,7 @@ class BeatBug(pygame.sprite.Sprite):
     super().__init__()
 
     self.image = pygame.Surface((BEATBUG_SIZE, BEATBUG_SIZE))
-    self.image.fill("green")
+    self.image.fill("blue")
     self.rect = self.image.get_rect()
     
     self.location = spawner_location

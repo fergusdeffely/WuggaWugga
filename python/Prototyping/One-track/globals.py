@@ -2,7 +2,7 @@ import pygame
 from level_data import level_map
 
 TILE_SIZE = 32
-
+ 
 SCREEN_WIDTH = 640
 SCREEN_HEIGHT = len(level_map) * TILE_SIZE
 
