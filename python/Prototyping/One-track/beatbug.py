@@ -36,7 +36,7 @@ class BeatBug(pygame.sprite.Sprite):
             #print(f"new location: current={self.location}, new={location}")
             for beater in beaters:
                 if beater.location == location:
-                    audio.play_beat() 
+                    beater.play(audio)
 
 
         # check if bearing is changing

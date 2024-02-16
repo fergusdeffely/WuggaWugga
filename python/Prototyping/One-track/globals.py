@@ -1,6 +1,7 @@
 import pygame
 from level_data import level_map
 
+NULL_LOCATION = (None, None)
 TILE_SIZE = 32
  
 SCREEN_WIDTH = 640
@@ -12,6 +13,8 @@ H_CENTER_BEATBUG = (TILE_SIZE - BEATBUG_SIZE) / 2
 V_CENTER_BEATBUG = (TILE_SIZE - BEATBUG_SIZE) / 2
 
 SPAWN_TIMER_EVENT = pygame.USEREVENT + 1
+
+ASSISTANT_LIST = ["red", "yellow"]
 
 def x(coords):
   return coords[0]

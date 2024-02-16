@@ -11,10 +11,10 @@ class Audio():
         print('init =', pygame.mixer.get_init())
         print('channels =', pygame.mixer.get_num_channels())
 
-        filename = "./onekick.wav"
-        sound = pygame.mixer.Sound(filename)
-        print(f'{filename}: length = {sound.get_length()}')
+        sound = pygame.mixer.Sound("onekick.wav")
         self.sounds["onekick"] = sound
+        sound = pygame.mixer.Sound("synthbass.ogg")
+        self.sounds["synthbass"] = sound
 
 
     def play_sound(self, name, maxtime=0):
@@ -27,3 +27,6 @@ class Audio():
 
     def play_beat(self):
         self.play_sound("onekick", 200)
+
+    def play_bass(self):
+        self.play_sound("synthbass", 200)
