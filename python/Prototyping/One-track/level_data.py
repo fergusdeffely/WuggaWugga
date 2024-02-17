@@ -2,6 +2,8 @@
 level_map = [
 "                           ",
 "                           ",
+"                           ",
+"                           ",
 "      EEEEEEEEEEES         ",
 "      N          S         ",
 "      O          S         ",

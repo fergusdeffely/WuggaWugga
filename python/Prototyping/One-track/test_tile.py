@@ -26,7 +26,6 @@ class TestTile(pygame.sprite.Sprite):
     self.rect = pygame.Rect(position[0], position[1], TILE_SIZE, TILE_SIZE)
     
   def update(self):
-    # TODO add highlighting here
     pass
     
   def get_centre(self):

@@ -11,23 +11,23 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
 audio = Audio()
 level = Level(level_map, screen, audio)
-pygame.time.set_timer(SPAWN_TIMER_EVENT, 1000)
+pygame.time.set_timer(SPAWN_TIMER_EVENT, SPAWN_TIMER_DURATION)
 
 while True:
-  for event in pygame.event.get():
-    if event.type == pygame.QUIT:
-      pygame.quit()
-      sys.exit()
-    elif event.type == SPAWN_TIMER_EVENT:
-      level.spawn_beatbug()
-    elif event.type == pygame.MOUSEBUTTONUP:
-      print(f"MouseButtonUp Event: {event.button} at {screen_to_grid(event.pos)}")
-      if event.button == 1:
-        level.handle_click(event)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == SPAWN_TIMER_EVENT:
+            level.spawn_beatbug()
+        elif event.type == pygame.MOUSEBUTTONUP:
+            print(f"Event: MouseButtonUp : {event.button} at {screen_to_grid(event.pos)}")
+            if event.button == 1:
+                level.handle_click(event)
+      
+    screen.fill("black")
     
-  screen.fill("black")
-  
-  level.draw()
+    level.draw()
 
-  pygame.display.update()
-  clock.tick(60)
+    pygame.display.update()
+    clock.tick(60)

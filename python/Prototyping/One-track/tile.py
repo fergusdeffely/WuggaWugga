@@ -12,7 +12,6 @@ class Tile(pygame.sprite.Sprite):
     
     
     def update(self):
-        # TODO add highlighting here
         pass
     
 

@@ -18,8 +18,6 @@ class Level:
 
       
     def initialise(self, data):
-
-        self.audio.play_bass()
         
         # add the tiles
         self.tiles = pygame.sprite.Group()
