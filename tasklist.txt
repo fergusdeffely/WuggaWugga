@@ -1,0 +1,15 @@
+* Add a pause button:
+* - add a hud
+*  - add a button class
+*  - add a timeline / scheduler
+ 
+
+Add cross track support:
+ - new menu item
+ - change mouse cursor on select
+ - allow rotating
+ - prevent placement along bugtrack
+ 
+ 
+ Investigate addition of a ui-theme:
+  - research existing libraries

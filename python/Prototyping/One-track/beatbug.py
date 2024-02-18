@@ -11,8 +11,8 @@ class BeatBug(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         
         self.location = spawner_location
-        # always start North for now...
-        self.bearing = 'O'
+        # always start East for now...
+        self.bearing = 'B'
         self.centre_in_gridrect(spawner_location, True, True)
 
 
@@ -33,28 +33,29 @@ class BeatBug(pygame.sprite.Sprite):
         location = screen_to_grid(self.rect.center)
         if self.location != location:
             self.location = location
-            #print(f"new location: current={self.location}, new={location}")
+
+            # have we entered a tile with a beater?
             for beater in beaters:
                 if beater.location == location:
                     beater.play(audio)
-
 
         # check if bearing is changing
         new_bearing = get_grid_cell_data(location)
     
         if self.bearing != new_bearing:
             # has the bug arrived back to the nest?
-            if new_bearing == 'O':
+            if new_bearing == 'F':
                 #despawn
                 self.kill()
                 return
           
-            # bearing is changing, but are we past the centre within the 
-            # current tile where direction needs to change?
+            # the bearing on the tile the bug is now in is different from the current bearing, 
+            # which means a direction change is going to happen... soon...
+            # we wait to change direction until we've moved through the centre of the new tile
             if (self.bearing == 'N' and y(self.rect.center) < y(get_grid_rect(location).center)) \
-              or (self.bearing == 'O' and y(self.rect.center) < y(get_grid_rect(location).center)) \
               or (self.bearing == 'S' and y(self.rect.center) > y(get_grid_rect(location).center)) \
               or (self.bearing == 'W' and x(self.rect.center) < x(get_grid_rect(location).center)) \
+              or (self.bearing == 'B' and x(self.rect.center) > x(get_grid_rect(location).center)) \
               or (self.bearing == 'E' and x(self.rect.center) > x(get_grid_rect(location).center)):
                 self.change_bearing(new_bearing, location)
               

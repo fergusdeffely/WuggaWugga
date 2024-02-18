@@ -4,7 +4,7 @@ from level_data import level_map
 NULL_LOCATION = (None, None)
 TILE_SIZE = 32
  
-SCREEN_WIDTH = 640
+SCREEN_WIDTH = len(level_map[0]) * TILE_SIZE
 SCREEN_HEIGHT = len(level_map) * TILE_SIZE
 
 BEATBUG_SIZE = 16
@@ -16,8 +16,10 @@ SPAWN_TIMER_DURATION = 2000
 
 SPAWN_TIMER_EVENT = pygame.USEREVENT + 1
 CHANNEL_READY_EVENT = pygame.USEREVENT + 2
+PAUSE_BUTTON_CLICKED = pygame.USEREVENT + 3
 
 ASSISTANT_LIST = ["red", "yellow"]
+
 
 def x(coords):
   return coords[0]
@@ -46,13 +48,13 @@ def get_grid_cell_data(location):
   return cell
   
 def get_direction_vector(bearing):
-  if bearing == 'N' or bearing == 'O':
+  if bearing == 'N':
     return pygame.math.Vector2(0,-1)
   elif bearing == 'S':
     return pygame.math.Vector2(0,1)
   elif bearing == 'W':
     return pygame.math.Vector2(-1,0)
-  elif bearing == 'E':  
+  elif bearing == 'E' or bearing == 'B':  
     return pygame.math.Vector2(1,0)
     
   return pygame.math.Vector2(0,0)
