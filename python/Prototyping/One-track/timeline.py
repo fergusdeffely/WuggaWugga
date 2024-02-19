@@ -8,11 +8,11 @@ class Timeline():
 
     def __init__(self):
         self._paused = False
-        self.timeline_events = []
+        self._timeline_events = []
 
 
     def add_event(self, event):
-        self.timeline_events.append(event)
+        self._timeline_events.append(event)
 
 
     def pause(self):
@@ -24,7 +24,7 @@ class Timeline():
         self._paused = False
         gap = pygame.time.get_ticks() - self.paused_at
         print ("unpausing - gap = %s" % gap)
-        for event in self.timeline_events:
+        for event in self._timeline_events:
             event.unpause(gap)
 
 
@@ -36,7 +36,7 @@ class Timeline():
         cleanup = []
         
         # run timeline events which are due
-        for event in self.timeline_events:
+        for event in self._timeline_events:
             if event.is_due(t):
                 event.run()
 
@@ -45,4 +45,4 @@ class Timeline():
 
         # cleanup completed timeline events
         for event in cleanup:
-            self.timeline_events.remove(event)
+            self._timeline_events.remove(event)

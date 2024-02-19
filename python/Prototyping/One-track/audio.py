@@ -2,8 +2,8 @@ import pygame, sys
 from globals import *
 
 class Audio():
-    sounds = {}
-    channel = None
+    _sounds = {}
+    _channel = None
 
     def __init__(self):
         print('audio:')
@@ -11,23 +11,23 @@ class Audio():
         print('channels =', pygame.mixer.get_num_channels())
 
         sound = pygame.mixer.Sound("onekick.wav")
-        self.sounds["onekick"] = sound
+        self._sounds["onekick"] = sound
         sound = pygame.mixer.Sound("synthbass.ogg")
-        self.sounds["synthbass"] = sound
+        self._sounds["synthbass"] = sound
 
 
-    def play_sound(self, name, maxtime=0):
-        sound = self.sounds.get(name)
+    def _play_sound(self, name, maxtime=0):
+        sound = self._sounds.get(name)
 
         if sound != None:
-            self.channel = sound.play(maxtime=maxtime)
+            self._channel = sound.play(maxtime=maxtime)
             
             # NOTE: leaving commented code to register sending of events
-            #self.channel.set_endevent(CHANNEL_READY_EVENT)
+            #self._channel.set_endevent(CHANNEL_READY_EVENT)
 
 
     def play_beat(self):
-        self.play_sound("onekick", 200)
+        self._play_sound("onekick", 200)
 
     def play_bass(self):
-        self.play_sound("synthbass", 200)
+        self._play_sound("synthbass", 200)

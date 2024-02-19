@@ -12,39 +12,36 @@ class Level:
 
     def __init__(self, data, surface, audio):
         self._paused = False
-        self.assistant_colour = None
-        self.surface = surface
-        self.audio = audio
-        self.data = data
-        self.initialise(data)        
+        self._surface = surface
+        self._audio = audio
+        self._data = data
+        self._initialise(data)
 
       
-    def initialise(self, data):
-        
+    def _initialise(self, data):
         # add the tiles
-        self.tiles = pygame.sprite.Group()
+        self._tiles = pygame.sprite.Group()
         for y, row in enumerate(data):
             for x, cell in enumerate(row):
                 if cell in ['N', 'S', 'W', 'E']:
                     tile = TrackTile((x, y), cell)
-                    self.tiles.add(tile)
+                    self._tiles.add(tile)
                 elif cell == 'B':
                     # Begin
-                    self.spawner_location = (x, y)
+                    self._spawner_location = (x, y)
                 elif cell == 'F':
                     # Finish
                     self.finish_location = (x, y)
               
         # create groups for the sprites
-        self.bugs = pygame.sprite.Group()
-        self.beaters = pygame.sprite.Group()
+        self._bugs = pygame.sprite.Group()
+        self._beaters = pygame.sprite.Group()
 
         # create the hud
-        self.hud = HUD()
+        self._hud = HUD()
 
         # create the mouse
-        mouse = Mouse()
-        self.mouse = pygame.sprite.GroupSingle(mouse)
+        self._mouse = pygame.sprite.GroupSingle(Mouse())
 
 
     def pause(self):
@@ -61,22 +58,22 @@ class Level:
 
     def draw(self):
         if self._paused == False:
-            self.tiles.update()
-        self.tiles.draw(self.surface)
+            self._tiles.update()
+        self._tiles.draw(self._surface)
 
         if self._paused == False:
-            self.beaters.update()
-        self.beaters.draw(self.surface)
+            self._beaters.update()
+        self._beaters.draw(self._surface)
 
         if self._paused == False:
-            self.bugs.update(self.data, self.beaters, self.audio)
-        self.bugs.draw(self.surface)
+            self._bugs.update(self._data, self._beaters, self._audio)
+        self._bugs.draw(self._surface)
 
-        self.hud.update()
-        self.hud.draw(self.surface)
+        self._hud.update()
+        self._hud.draw(self._surface)
 
-        self.mouse.update()
-        self.mouse.draw(self.surface)
+        self._mouse.update()
+        self._mouse.draw(self._surface)
       
 
     def handle_click(self, event):
@@ -87,27 +84,27 @@ class Level:
             return
 
         # check for palette option clicked
-        new_colour = self.hud.palette.handle_click(location=location)
+        new_colour = self._hud.palette.handle_click(location=location)
         if new_colour is not None:
-            self.hud.palette.select([location, new_colour])
+            self._hud.palette.select([location, new_colour])
 
         # check for add beater
-        cell = self.data[y(location)][x(location)]
+        cell = self._data[y(location)][x(location)]
 
         if(cell in "NSEW"):
             #TODO: Check if beater already exists in this location
             beater_type = None
-            if self.hud.palette.selected_colour() == "red":
+            if self._hud.palette.selected_colour() == "red":
                 beater_type = BeaterType.KICK
-            elif self.hud.palette.selected_colour() == "yellow":
+            elif self._hud.palette.selected_colour() == "yellow":
                 beater_type = BeaterType.BASS
             
             if beater_type is not None:
-                beater = Beater(location, self.hud.palette.selected_colour(), beater_type)
-                self.beaters.add(beater)
+                beater = Beater(location, self._hud.palette.selected_colour(), beater_type)
+                self._beaters.add(beater)
 
     
     def spawn_beatbug(self):
-        if(self.spawner_location):
-            bug = BeatBug(self.spawner_location)
-            self.bugs.add(bug)
+        if(self._spawner_location):
+            bug = BeatBug(self._spawner_location)
+            self._bugs.add(bug)

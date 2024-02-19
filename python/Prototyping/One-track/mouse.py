@@ -7,7 +7,6 @@ class Mouse(pygame.sprite.Sprite):
     
     self.image = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA, 32)
     self.image = self.image.convert_alpha()
-
     self.rect = self.image.get_rect()
 
     frame = pygame.Rect((0,0), (TILE_SIZE, TILE_SIZE))

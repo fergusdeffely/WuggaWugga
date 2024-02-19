@@ -2,6 +2,7 @@ import pygame
 from globals import *
  
 class Tile(pygame.sprite.Sprite):
+
     def __init__(self, location):
         super().__init__()
 

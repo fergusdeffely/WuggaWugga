@@ -3,14 +3,13 @@ from globals import *
 
 class Palette(pygame.sprite.Sprite):
 
-    assistants = {}
-
-    selected_assistant = None
+    _assistants = {}                # location: colour
+    _selected_assistant = None
 
     def __init__(self):
         super().__init__()
 
-        print(ASSISTANT_LIST)
+        print("Palette: Assistant list: ", ASSISTANT_LIST)
 
         # height for each option plus space between
         height = len(ASSISTANT_LIST) * 2
@@ -20,15 +19,15 @@ class Palette(pygame.sprite.Sprite):
         # build the assistants
         for i, colour in enumerate(ASSISTANT_LIST):
             location = (1, 1 + i*2)
-            self.assistants[location] = colour
+            self._assistants[location] = colour
 
 
     def handle_click(self, location):
-        return self.assistants.get(location)
+        return self._assistants.get(location)
 
 
     def draw(self, surface):
-        for location, colour in self.assistants.items():
+        for location, colour in self._assistants.items():
             rect = pygame.Rect(grid_to_screen(location), (TILE_SIZE, TILE_SIZE))
             pygame.draw.rect(self.image, colour, rect)
             # highlighting
@@ -45,23 +44,25 @@ class Palette(pygame.sprite.Sprite):
 
     def select(self, assistant):
         print("Assistant selected: ", assistant)
-        self.selected_assistant = assistant
+        self._selected_assistant = assistant
 
 
     def selected(self):
-        return self.selected_assistant
+        return self._selected_assistant
+
 
     def selected_location(self):
-        if self.selected_assistant == None:
+        if self._selected_assistant == None:
             return None
         else:
-            return self.selected_assistant[0]
+            return self._selected_assistant[0]
+
     
     def selected_colour(self):
-        if self.selected_assistant == None:
+        if self._selected_assistant == None:
             return None
         else:
-            return self.selected_assistant[1]
+            return self._selected_assistant[1]
 
 
 
