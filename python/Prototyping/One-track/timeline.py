@@ -28,12 +28,14 @@ class Timeline():
             event.unpause(gap)
 
 
-    def update(self, t):
+    def update(self):
 
         if self._paused == True:
             return
 
         cleanup = []
+
+        t = pygame.time.get_ticks()
         
         # run timeline events which are due
         for event in self._timeline_events:

@@ -3,6 +3,16 @@
 *  - add a button class
 *  - add a timeline / scheduler
  
+* Investigate addition of a ui-theme:
+*  - research existing libraries
+
+
+Investigate issues with multiple sounds playing simultaneously
+
+Add panel for side menu:
+* - Look into editing themes in pygame_gui
+* - Tidy up ui_element management code
+ - Implement unique button colours with themes 
 
 Add cross track support:
  - new menu item
@@ -11,5 +21,3 @@ Add cross track support:
  - prevent placement along bugtrack
  
  
- Investigate addition of a ui-theme:
-  - research existing libraries

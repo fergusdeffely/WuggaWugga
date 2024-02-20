@@ -3,15 +3,15 @@ from globals import *
 
 class BeatBug(pygame.sprite.Sprite):
 
-    def __init__(self, spawner_location):
+    def __init__(self, location):
         super().__init__()
 
         self.image = pygame.Surface((BEATBUG_SIZE, BEATBUG_SIZE))
         self.image.fill("blue")
         self.rect = self.image.get_rect()
-        self._location = spawner_location
+        self._location = location
         self._bearing = 'B'
-        self._centre_in_gridrect(spawner_location, True, True)
+        self._centre_in_gridrect(self._location, True, True)
 
 
     def _centre_in_gridrect(self, location, h_centre, v_centre):  

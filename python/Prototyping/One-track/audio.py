@@ -1,6 +1,7 @@
 import pygame, sys
 from globals import *
 
+
 class Audio():
     _sounds = {}
     _channel = None
