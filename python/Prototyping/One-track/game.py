@@ -36,7 +36,7 @@ class Game():
         self.session = Session(timeline, GameState.RUNNING)
         ui_manager = pygame_gui.UIManager(SCREEN_SIZE, "ui_theme.json")
         
-        self.ui = UI(ui_manager, self.session)
+        self.ui = UI(ui_manager, self.out.video)
         self.mouse = pygame.sprite.GroupSingle(Mouse())
         
 

@@ -1,4 +1,5 @@
 import pygame
+from enums import *
 from level_data import level_map
 
 NULL_LOCATION = (None, None)
@@ -18,8 +19,10 @@ SPAWN_TIMER_DURATION = 2000
 SPAWN_TIMER_EVENT = pygame.USEREVENT + 1
 CHANNEL_READY_EVENT = pygame.USEREVENT + 2
 
-ASSISTANT_LIST = ["red", "yellow"]
+ASSISTANT_LIST = [("red", AssistantType.KICK_EMITTER),
+                  ("yellow", AssistantType.BASS_EMITTER)]
 
+ASSISTANT_BUTTON_SPACER = TILE_SIZE / 2
 
 def x(coords):
   return coords[0]

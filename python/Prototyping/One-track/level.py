@@ -3,8 +3,7 @@ from globals import *
 from session import GameState
 from tracktile import TrackTile
 from beatbug import BeatBug
-from beater import Beater
-from beater import BeaterType
+from emitter import Emitter
 from mouse import Mouse
 
 class Level:
@@ -32,40 +31,48 @@ class Level:
               
         # create groups for the sprites
         self._bugs = pygame.sprite.Group()
-        self._beaters = pygame.sprite.Group()
+        self._emitters = pygame.sprite.Group()
 
 
     def update(self, gamestate, audio):
         if gamestate == GameState.RUNNING:
             self._tiles.update()
-            self._beaters.update()
-            self._bugs.update(self._data, self._beaters, audio)
+            self._emitters.update()
+            self._bugs.update(self._data, self._emitters, audio)
 
 
     def draw(self, surface):
         self._tiles.draw(surface)
-        self._beaters.draw(surface)
+        self._emitters.draw(surface)
         self._bugs.draw(surface)
 
 
     def handle_click(self, position, assistant):
 
+        if assistant == None:
+            return
+
         location = screen_to_grid(position)
+
+        # don't place over another emitter
+        for emitter in self._emitters:
+            if emitter.location == location:
+                return
 
         # check if the location is valid for placement
         cell = self._data[y(location)][x(location)]
 
         if(cell in "NSEW"):
-            #TODO: Check if beater already exists in this location
-            beater_type = None
+            #TODO: Check if emitter already exists in this location
+            emitter_type = None
             if assistant.colour == "red":
-                beater_type = BeaterType.KICK
+                emitter_type = EmitterType.KICK
             elif assistant.colour == "yellow":
-                beater_type = BeaterType.BASS
+                emitter_type = EmitterType.BASS
             
-            if beater_type is not None:
-                beater = Beater(location, assistant.colour, beater_type)
-                self._beaters.add(beater)
+            if emitter_type is not None:
+                emitter = Emitter(location, assistant.colour, emitter_type)
+                self._emitters.add(emitter)
 
     
     def spawn_beatbug(self):

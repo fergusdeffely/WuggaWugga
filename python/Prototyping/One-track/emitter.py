@@ -3,16 +3,11 @@ from enum import Enum
 from globals import *
 
 
-class BeaterType(Enum):
-    KICK = 1
-    BASS = 2
-
-
-class Beater(pygame.sprite.Sprite):
-    def __init__(self, location, colour, beater_type):
+class Emitter(pygame.sprite.Sprite):
+    def __init__(self, location, colour, emitter_type):
         super().__init__()
 
-        self._type = beater_type
+        self._type = emitter_type
         self.location = location
         self.image = pygame.Surface((TILE_SIZE, TILE_SIZE))
         self.image.fill(colour)
@@ -21,9 +16,9 @@ class Beater(pygame.sprite.Sprite):
 
 
     def play(self, audio):
-        if self._type == BeaterType.KICK:
+        if self._type == EmitterType.KICK:
             audio.play_beat()
-        elif self._type == BeaterType.BASS:
+        elif self._type == EmitterType.BASS:
             audio.play_bass()
 
 

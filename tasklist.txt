@@ -1,3 +1,26 @@
+In progress:
+-----------
+
+Add cross track support:
+ - show indicator of valid/invalid placement
+ - enforce placement rules
+ - new menu item
+ - change mouse cursor on select
+ - allow rotating
+
+
+Investigate issues with multiple sounds playing simultaneously
+
+Implement a tile map:
+
+Add panel for side menu:
+
+----------------------------------------
+
+
+Complete:
+--------
+
 * Add a pause button:
 * - add a hud
 *  - add a button class
@@ -6,18 +29,10 @@
 * Investigate addition of a ui-theme:
 *  - research existing libraries
 
-
-Investigate issues with multiple sounds playing simultaneously
-
-Add panel for side menu:
+* UI enhancements:
 * - Look into editing themes in pygame_gui
 * - Tidy up ui_element management code
- - Implement unique button colours with themes 
+* - Implement unique button colours with themes
+* - Add resource file - for additional layout options
 
-Add cross track support:
- - new menu item
- - change mouse cursor on select
- - allow rotating
- - prevent placement along bugtrack
- 
  

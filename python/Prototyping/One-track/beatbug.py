@@ -25,16 +25,16 @@ class BeatBug(pygame.sprite.Sprite):
             self.rect.y = grid_top + V_CENTER_BEATBUG
         
     
-    def update(self, level_data, beaters, audio):    
+    def update(self, level_data, emitters, audio):    
         # check if the bug has entered a new tile
         location = screen_to_grid(self.rect.center)
         if self._location != location:
             self._location = location
 
-            # have we entered a tile with a beater?
-            for beater in beaters:
-                if beater.location == location:
-                    beater.play(audio)
+            # have we entered a tile with a emitter?
+            for emitter in emitters:
+                if emitter.location == location:
+                    emitter.play(audio)
 
         # check if bearing is changing
         new_bearing = get_grid_cell_data(location)

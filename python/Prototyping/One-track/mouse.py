@@ -2,6 +2,7 @@ import pygame
 from globals import *
 
 class Mouse(pygame.sprite.Sprite):
+  
   def __init__(self):
     super().__init__()
     
