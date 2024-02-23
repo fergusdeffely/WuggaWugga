@@ -3,8 +3,9 @@
     {
         "controls":
         [
-            {
+            {                
                 "type": "button",
+                "name": "pause_button",
                 "text": "Pause",
                 "rect": [0, 0, 80, 30], 
                 "anchors":

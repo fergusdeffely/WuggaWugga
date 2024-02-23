@@ -4,18 +4,20 @@ import pygame_gui
 from pygame_gui.core import ObjectID
 from globals import *
 from session import GameState
+from assistant_uibutton import AssistantUIButton
+from wugga_uibutton import WuggaUIButton
 from assistant import Assistant
 
 class UI():
 
-    _elements = {}
-
-    def __init__(self, ui_manager, surface):
-        self.manager = ui_manager        
-        self._surface = surface
+    def __init__(self, ui_manager, out, mouse, level):
+        self.manager = ui_manager
+        self._out = out
+        self.mouse = mouse
+        self.level = level
+        self._buttons = []
 
         #TODO: Add exception handling for file access
-        print("json test")
         with open("resources.json") as f:
             d = json.load(f)
             print(d)
@@ -35,6 +37,7 @@ class UI():
                 if rect is not None:
                     layout_rect = pygame.Rect(rect[0], rect[1], rect[2], rect[3])
                     print("layout rect:{}".format(layout_rect))
+                name = control.get("name")
                 anchors = control.get("anchors")
                 if anchors is not None:
                     print("anchors:{}".format(anchors))
@@ -47,52 +50,54 @@ class UI():
                             element_anchors["bottom"] = "bottom"
                     print("element_anchors: {}".format(element_anchors))
             
-                button = pygame_gui.elements.UIButton(relative_rect=layout_rect,
-                                                      text=control["text"],
-                                                      manager=self.manager,
-                                                      anchors=element_anchors)
-                self._elements[button] = self.on_pause_clicked
+                button = WuggaUIButton(rect=layout_rect,
+                                       text=control["text"],
+                                       manager=self.manager,
+                                       anchors=element_anchors,
+                                       name=name)
+
+                self._buttons.append(button)
 
 
     def _build_assistants_palette(self):
         print("building assistants palette...")
-        print("Assistant list: ", ASSISTANT_LIST)
-
-        # build the assistants
-        for i, a in enumerate(ASSISTANT_LIST):
+        print("Assistant list: ", ASSISTANT_ROSTER)
+        
+        # build the assistants and their buttons
+        for i, roster_info in enumerate(ASSISTANT_ROSTER):
+            # first, the button
             x = TILE_SIZE
             y = ASSISTANT_BUTTON_SPACER * (i + 1) + i * TILE_SIZE
-            object_id = "#{}".format(a[0])
-            button = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((x, y), (TILE_SIZE * 2, TILE_SIZE)),
-                                                    text="",
-                                                    manager=self.manager,
-                                                    object_id=ObjectID(class_id='@assistant_buttons',
-                                                                       object_id=object_id))
-            assistant = Assistant(a[0], a[1])
-            self._elements[button] = assistant.on_clicked
+            colour, assistant_type = roster_info[0], roster_info[1]
 
+            object_id = "#{}".format(colour)
+            hovered_bg = self.manager.get_theme().get_colour("hovered_bg", [object_id])
+
+            button = AssistantUIButton(rect=pygame.Rect((x, y), (TILE_SIZE * 2, TILE_SIZE)),
+                                       text="",
+                                       manager=self.manager,
+                                       object_id=ObjectID(class_id='@assistant_buttons',
+                                                          object_id=object_id),
+                                       assistant_type=assistant_type,
+                                       colour=colour,
+                                       shadow_colour=hovered_bg)
+
+            self._buttons.append(button)
+            
 
     def handle_gui_event(self, event, session):
-        handler = self._elements.get(event.ui_element)
-        handler(event.ui_element, session)
-
-
-    def on_pause_clicked(self, ui_element, session):
-        print("on_pause_clicked")
-        if session.gamestate == GameState.RUNNING:
-            session.timeline.pause()
-            session.gamestate = GameState.PAUSED
-            ui_element.text = "Unpause"
-        else:
-            session.timeline.unpause()
-            session.gamestate = GameState.RUNNING
-            ui_element.text = "Pause"
+        event.ui_element.on_clicked(session, self)
 
 
     def draw(self, surface):
         self.manager.draw_ui(surface)
+        self.mouse.draw(surface)
 
 
-    def update(self, time_delta):
+    def update(self, time_delta, session):
+        self.level.update(session.gamestate, self._out.audio)
+        self.level.draw(self._out.video)
+
         self.manager.update(time_delta)
+        self.mouse.update(session)
         

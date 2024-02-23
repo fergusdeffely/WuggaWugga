@@ -4,7 +4,7 @@ from globals import *
 
 
 class Emitter(pygame.sprite.Sprite):
-    def __init__(self, location, colour, emitter_type):
+    def __init__(self, emitter_type, location, colour):
         super().__init__()
 
         self._type = emitter_type

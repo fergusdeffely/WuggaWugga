@@ -7,14 +7,27 @@ from session import GameState
 
 class Assistant():
 
-    def __init__(self, colour, assistant_type):
+    def __init__(self, assistant_type, colour, shadow_colour):
         self.type = assistant_type
+        self.emitter_type = EmitterType(self.type.value)
         self.colour = colour
+        self.shadow_colour = shadow_colour
 
-    def on_clicked(self, ui_element, session):
-        if session.gamestate == GameState.RUNNING:
-            print(f"on_clicked: assistant {self.colour}")
-            session.selected_assistant = self
+        # build the shape
+        if self.type in (AssistantType.KICK_EMITTER, 
+                         AssistantType.BASS_EMITTER):
+            self.shape = [(0,0)]
 
+
+    def __repr__(self):
+        return "Assistant({}, {}, {}, {}, {})".format(self.type, 
+                                                      self.emitter_type, 
+                                                      self.colour, 
+                                                      self.shadow_colour, 
+                                                      self.shape)
+
+
+    def has_location(self, location):
+        return False
 
     

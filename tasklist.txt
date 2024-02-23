@@ -5,11 +5,8 @@ Add cross track support:
  - show indicator of valid/invalid placement
  - enforce placement rules
  - new menu item
- - change mouse cursor on select
+*- change mouse cursor on select
  - allow rotating
-
-
-Investigate issues with multiple sounds playing simultaneously
 
 Implement a tile map:
 
@@ -35,4 +32,7 @@ Complete:
 * - Implement unique button colours with themes
 * - Add resource file - for additional layout options
 
+* Investigate issues with multiple sounds playing simultaneously
+ ** Not an audio issue - a sequencing issue. Sounds played out
+    of synch/sequence can just be discordant
  

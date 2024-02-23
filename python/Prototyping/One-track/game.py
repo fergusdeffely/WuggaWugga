@@ -25,19 +25,19 @@ class Game():
 
         screen = pygame.display.set_mode(SCREEN_SIZE)
         self.out = Output(screen, Audio())
-        self.level = Level(level_map, self.out)
+        level = Level(level_map, self.out)
 
         timeline = Timeline()
         spawn_beatbug_event = TimelineEvent(pygame.time.get_ticks(), 
-                                            self.level.spawn_beatbug, 
+                                            level.spawn_beatbug, 
                                             0, 2000)
         timeline.add_event(spawn_beatbug_event)
 
         self.session = Session(timeline, GameState.RUNNING)
         ui_manager = pygame_gui.UIManager(SCREEN_SIZE, "ui_theme.json")
         
-        self.ui = UI(ui_manager, self.out.video)
-        self.mouse = pygame.sprite.GroupSingle(Mouse())
+        mouse = pygame.sprite.GroupSingle(Mouse())
+        self.ui = UI(ui_manager, self.out, mouse, level)
         
 
     def run(self):
@@ -52,7 +52,7 @@ class Game():
                     print(f"Event: MouseButtonUp : {event.button} at {screen_to_grid(event.pos)}")
                     if event.button == 1:
                         if self.session.gamestate == GameState.RUNNING:
-                            self.level.handle_click(event.pos, self.session.selected_assistant)
+                            self.ui.level.handle_click(event.pos, self.session.selected_assistant)
 
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     print ("Event: pygame_gui.UI_BUTTON_PRESSED :")
@@ -63,14 +63,8 @@ class Game():
             self.session.timeline.update()
             self.out.video.fill("black")
 
-            self.level.update(self.session.gamestate, self.out.audio)
-            self.level.draw(self.out.video)
-
-            self.ui.update(time_delta)
+            self.ui.update(time_delta, self.session)
             self.ui.draw(self.out.video)
-
-            self.mouse.update()
-            self.mouse.draw(self.out.video)
 
             pygame.display.update()
 
