@@ -22,12 +22,15 @@ class AssistantUIButton(pygame_gui.elements.UIButton):
             print(f"on_clicked: assistant {self.colour}")
 
             # create an assistant
-            assistant = Assistant(self.type, self.colour, self.shadow_colour)
+            assistant = Assistant(self.type, ui.get_selected_tile(), self.colour, self.shadow_colour)
+            print("Created assistant instance: ", assistant)
+
             session.selected_assistant = assistant
 
             # refresh the mouse
-            location = screen_to_grid(pygame.mouse.get_pos())
-            ui.mouse.sprite.redraw_mouse_pointer(session, ui.level, location)
+            ui.mouse.sprite.draw_cursor()
+
+
 
 
 

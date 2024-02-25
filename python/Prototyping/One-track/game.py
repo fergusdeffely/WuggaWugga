@@ -52,7 +52,7 @@ class Game():
                     print(f"Event: MouseButtonUp : {event.button} at {screen_to_grid(event.pos)}")
                     if event.button == 1:
                         if self.session.gamestate == GameState.RUNNING:
-                            self.ui.level.handle_click(event.pos, self.session.selected_assistant)
+                            self.ui.level.handle_click(event.pos, self.session)
 
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     print ("Event: pygame_gui.UI_BUTTON_PRESSED :")
@@ -64,7 +64,7 @@ class Game():
             self.out.video.fill("black")
 
             self.ui.update(time_delta, self.session)
-            self.ui.draw(self.out.video)
+            self.ui.draw(self.out.video, self.session)
 
             pygame.display.update()
 

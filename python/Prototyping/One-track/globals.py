@@ -28,14 +28,14 @@ def x(coords):
     return coords[0]
 
 def y(coords):
-    return coords[1]  
+    return coords[1]
 
 def grid_to_screen(location):
     return (location[0] * TILE_SIZE, location[1] * TILE_SIZE)
   
 def screen_to_grid(position):
     return (int(position[0] / TILE_SIZE), int(position[1] / TILE_SIZE))
-  
+
 def get_containing_grid(position):
     left = x(position) - x(position) % TILE_SIZE
     top = y(position) - y(position) % TILE_SIZE

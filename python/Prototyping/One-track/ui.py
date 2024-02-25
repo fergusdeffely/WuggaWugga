@@ -85,19 +85,27 @@ class UI():
             self._buttons.append(button)
             
 
+    # returns topleft in screen coordinates of the tile currently
+    # selected by the mouse
+    def get_selected_tile(self):
+        return self.mouse.sprite.rect.topleft
+
+
     def handle_gui_event(self, event, session):
         event.ui_element.on_clicked(session, self)
 
 
-    def draw(self, surface):
-        self.manager.draw_ui(surface)
-        self.mouse.draw(surface)
-
-
     def update(self, time_delta, session):
         self.level.update(session.gamestate, self._out.audio)
-        self.level.draw(self._out.video)
 
         self.manager.update(time_delta)
-        self.mouse.update(session)
+        self.mouse.update(session, self.level)
+
+
+    def draw(self, surface, session):
+        self.level.draw(self._out.video)
+        self.manager.draw_ui(surface)        
+        if session.selected_assistant is not None:
+            session.selected_assistant_groupsingle.draw(surface)
+        self.mouse.draw(surface)
         

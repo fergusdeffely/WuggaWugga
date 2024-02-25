@@ -1,4 +1,5 @@
 import pygame
+import copy
 from globals import *
 from session import GameState
 from tracktile import TrackTile
@@ -11,13 +12,12 @@ class Level:
     def __init__(self, data, out):
         self._out = out
         self._data = data
-        self._initialise(data)
-        self._assistants = []
-
-      
-    def _initialise(self, data):
-        # add the tiles
         self._tiles = pygame.sprite.Group()
+        self._assistants = pygame.sprite.Group()
+        self._initialise(data)
+
+    def _initialise(self, data):
+        # add the tiles        
         for y, row in enumerate(data):
             for x, cell in enumerate(row):
                 if cell in ['N', 'S', 'W', 'E']:
@@ -44,30 +44,36 @@ class Level:
 
     def draw(self, surface):
         self._tiles.draw(surface)
+        self._assistants.draw(surface)
         self._emitters.draw(surface)
         self._bugs.draw(surface)
 
 
-    def handle_click(self, position, assistant):
+    def handle_click(self, position, session):
 
-        if assistant == None:
+        if session.selected_assistant == None:
             return
 
         location = screen_to_grid(position)
 
-        print("level.handle_click: selected_assistant = ", assistant)
+        if self.is_assistant_placeable(location, session.selected_assistant):
+            assistant = copy.deepcopy(session.selected_assistant)
+            assistant.location = location
+            # create an emitter
+            emitter = Emitter(assistant.emitter_type, location, 
+                              assistant.colour)
+            emitter.assistant = assistant
 
-        if self.is_assistant_placeable(location, assistant):
             # add a new assistant to the level
-            self._assistants.append(assistant)
-
-            emitter = Emitter(assistant.emitter_type, location, assistant.colour)
+            self._assistants.add(assistant)
             self._emitters.add(emitter)
+
+            session.selected_assistant_groupsingle = None
 
 
     def assistant_at(self, location):
-        for assistant in self._assistants:
-            if assistant.has_location(location):
+        for assistant in self._assistants.sprites():
+            if assistant.has_segment(location):
                 return True
 
         return False
@@ -86,10 +92,16 @@ class Level:
         if self.assistant_at(location):
             return False
 
-        if self.track_tile_at(location):
+        count = 0
+        for location in assistant.get_segment_locations():
+            if self.track_tile_at(location):
+                count += 1
+
+        if count == 1:
             return True
 
-        return False        
+        return False
+
     
     def spawn_beatbug(self):
         if(self._spawner_location):

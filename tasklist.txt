@@ -2,11 +2,19 @@ In progress:
 -----------
 
 Add cross track support:
- - show indicator of valid/invalid placement
  - enforce placement rules
- - new menu item
-*- change mouse cursor on select
  - allow rotating
+*- change mouse cursor on select
+*- show indicator of valid/invalid placement
+*- add support for shape segments
+
+Moving emitters:
+*- basic movement
+ - check for bounds and change direction
+
+Enhance drawing of shadow for selected assistant.
+Draw allowed placements underneath bugs, but over
+tracks.
 
 Implement a tile map:
 
