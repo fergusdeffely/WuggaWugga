@@ -3,7 +3,6 @@ import pygame
 import pygame_gui
 from pygame_gui.core import ObjectID
 from globals import *
-from session import GameState
 from assistant_uibutton import AssistantUIButton
 from wugga_uibutton import WuggaUIButton
 from assistant import Assistant
@@ -95,10 +94,10 @@ class UI():
         event.ui_element.on_clicked(session, self)
 
 
-    def update(self, time_delta, session):
-        self.level.update(session.gamestate, self._out.audio)
+    def update(self, frame_ticks, time_delta, session):
+        self.level.update(frame_ticks, self._out.audio)
 
-        self.manager.update(time_delta)
+        self.manager.update(time_delta / 1000.0)
         self.mouse.update(session, self.level)
 
 
@@ -108,4 +107,15 @@ class UI():
         if session.selected_assistant is not None:
             session.selected_assistant_groupsingle.draw(surface)
         self.mouse.draw(surface)
+        
+
+    def pause(self):
+        self.level.pause()
+        
+
+    def unpause(self, gap):
+        self.level.unpause(gap)
+
+        
+
         

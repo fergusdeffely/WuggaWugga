@@ -14,6 +14,8 @@ class Assistant(pygame.sprite.Sprite):
         self.emitter_type = EmitterType(self.type.value)
         self.colour = colour
         self.shadow_colour = shadow_colour
+        # location will be set after the assistant is placed
+        self.location = None
 
         # build the shape
         # segment format:
@@ -57,7 +59,7 @@ class Assistant(pygame.sprite.Sprite):
     def get_root_location(self):
         location = screen_to_grid(self.rect.topleft)
         root_location = (x(location) + x(self.root_offset), y(location) + y(self.root_offset))
-        print("Assistant.get_root_location: location (rect) = {}, root_location = {}".format(location, root_location))
+        log(4, "Assistant.get_root_location: location (rect) = {}, root_location = {}".format(location, root_location))
         return root_location
 
 
@@ -68,7 +70,7 @@ class Assistant(pygame.sprite.Sprite):
             segment_locations.append((x(root_location) + x(segment_offset), 
                                       y(root_location) + y(segment_offset)))
 
-        print("get_segment_locations: returning: ", segment_locations)
+        log(4, f"Assistant.get_segment_locations: returning: {segment_locations}")
         return segment_locations
 
 
@@ -99,9 +101,9 @@ class Assistant(pygame.sprite.Sprite):
         # print("get_exits: seeking position = {} (location:{})".format(position, requested_location))
         # print("get_exits: assistant root location = ", self.location)
 
-        for i, segment in enumerate(self.segments):
-            if (x(self.location) + x(segment), y(self.location) + y(segment)) == requested_location:
-                # print ("get_exits: Found location in segment: ", segment)
+        # which segment is the requested location in?
+        for i, offset in enumerate(self.segments):
+            if (x(self.location) + x(offset), y(self.location) + y(offset)) == requested_location:
                 return self.exits[i]
             
         return (0,0,0,0)

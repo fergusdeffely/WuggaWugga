@@ -2,19 +2,34 @@ In progress:
 -----------
 
 Add cross track support:
- - enforce placement rules
+ - enforce placement rules for more complex shapes
  - allow rotating
 *- change mouse cursor on select
 *- show indicator of valid/invalid placement
 *- add support for shape segments
 
 Moving emitters:
+ - test more advanced shapes
 *- basic movement
- - check for bounds and change direction
+*- check for bounds and change direction
+*- fix collisions between emitters and beatbugs
+
+Synchronisation:
+ - fix turning corners
+*- fix pause
+*- investigate synchronisation of emitters/beatbugs over 
+   extended time range
+*- investigate possibility of controlling timing of movement 
+   through timeline. added a mechanism based on relative time
+   and distance from point of departure
+ 
+Port emitter movement logic to beatbug
 
 Enhance drawing of shadow for selected assistant.
 Draw allowed placements underneath bugs, but over
 tracks.
+
+Examine logging with consideration to performance
 
 Implement a tile map:
 

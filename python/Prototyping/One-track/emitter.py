@@ -31,29 +31,58 @@ class Emitter(pygame.sprite.Sprite):
             audio.play_bass()
 
 
-    def update(self):
-        # check if the emitter has entered a new tile
+    def update(self, beatbugs, audio):
 
-        exits = self.assistant.get_exits(self.rect.center)
+        self.check_for_direction_change()
 
-        print("Emitter.update - current exits = ", exits)
-
-        # # if current_location != self.location:
-        # #     # we've entered a new segment
-        # #     self.location = current_location
-
-        # if self.assistant is not None:
-        #     exits = self.assistant.get_exits(self.location)
-        #     if (self.direction.x == 1 and exits[0] == 1 or
-        #         self.direction.x == -1 and exits[1] == 1 or
-        #         self.direction.y == 1 and exits[2] == 1 or
-        #         self.direction.y == -1 and exits[3] == 1):
-
-        # movement
-        # TODO: movement rules
-        
         # update screen position
         self.rect.x += self.direction.x
         self.rect.y += self.direction.y
 
+        old_location = self.location
         self.location = screen_to_grid(self.rect.center)
+        
+        if self.location != old_location:
+            # have we happened upon a bug?
+            for beatbug in beatbugs:
+                if beatbug.location == self.location:
+                    self.play(audio)
+
+
+    def check_for_direction_change(self):
+        # if we are past the centre of the current tile and
+        # the exit in the current direction is not open,
+        # find an available exit
+
+        exit_info = self.assistant.get_exits(self.rect.center)
+
+        centre = get_tile_rect(self.location).center
+
+        # Note:
+        # take a sample x-axis (o = origin)
+        #
+        # .....-x2....-x1.....o.....x1....x2.....
+        #
+        #  x2 > x1
+        # -x1 > -x2
+
+        if self.rect.centerx * self.direction.x > x(centre) * self.direction.x:
+            # try left, try right, then try reverse
+            if self.direction.x == 1 and E(exit_info) == False:
+                if N(exit_info): self.direction = pygame.Vector2(0, -1)
+                elif S(exit_info): self.direction = pygame.Vector2(0, 1)
+                elif W(exit_info): self.direction = pygame.Vector2(-1, 0)
+            if self.direction.x == -1 and W(exit_info) == 0:
+                if S(exit_info): self.direction = pygame.Vector2(0, 1)
+                elif N(exit_info): self.direction = pygame.Vector2(0, -1)
+                elif E(exit_info): self.direction = pygame.Vector2(1, 0)
+
+        if self.rect.centery * self.direction.y > y(centre) * self.direction.y:
+            if self.direction.y == 1 and S(exit_info) == False:
+                if E(exit_info): self.direction = pygame.Vector2(1, 0)
+                elif W(exit_info): self.direction = pygame.Vector2(-1, 0)
+                elif N(exit_info): self.direction = pygame.Vector2(0, -1)
+            if self.direction.y == -1 and N(exit_info) == 0:
+                if W(exit_info): self.direction = pygame.Vector2(-1, 0)
+                elif E(exit_info): self.direction = pygame.Vector2(1, 0)
+                elif S(exit_info): self.direction = pygame.Vector2(0, 1)

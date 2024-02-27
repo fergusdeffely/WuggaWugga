@@ -1,6 +1,6 @@
 import pygame
 from globals import *
-from session import Session
+
 
 class Mouse(pygame.sprite.Sprite):
   
@@ -17,12 +17,12 @@ class Mouse(pygame.sprite.Sprite):
       
     def update(self, session, level):
         position = pygame.mouse.get_pos()
-        grid = get_containing_grid(position)
+        topleft = get_tile_topleft(position)
 
         # different grid square?
-        if self.rect.topleft != grid:            
-            self.rect.x = x(grid)
-            self.rect.y = y(grid)
+        if self.rect.topleft != topleft:
+            self.rect.x = x(topleft)
+            self.rect.y = y(topleft)
 
             # is there a currently selected assistant?
             if session.selected_assistant is not None:

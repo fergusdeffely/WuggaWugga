@@ -1,17 +1,25 @@
 import pygame
 from globals import *
+from timeline_logger import timeline_logger
 
 class BeatBug(pygame.sprite.Sprite):
 
-    def __init__(self, location):
+    current_id = 0
+
+    def __init__(self, location, t0):
         super().__init__()
 
+        self.id = BeatBug.current_id
+        BeatBug.current_id += 1
         self.image = pygame.Surface((BEATBUG_SIZE, BEATBUG_SIZE))
         self.image.fill("blue")
         self.rect = self.image.get_rect()
-        self._location = location
+        self.location = location        
         self._bearing = 'B'
-        self._centre_in_gridrect(self._location, True, True)
+        self._centre_in_gridrect(self.location, True, True)
+        self.t0 = t0
+        self.speed = TILE_SIZE * 2
+        self.reference_position = self.rect.center
 
 
     def _centre_in_gridrect(self, location, h_centre, v_centre):  
@@ -24,12 +32,16 @@ class BeatBug(pygame.sprite.Sprite):
         if v_centre == True:
             self.rect.y = grid_top + V_CENTER_BEATBUG
         
+
+    def adjust_for_pause(self, gap):
+        self.t0 += gap
+
     
-    def update(self, level_data, emitters, audio):    
+    def update(self, frame_ticks, level_data, emitters, audio):
         # check if the bug has entered a new tile
         location = screen_to_grid(self.rect.center)
-        if self._location != location:
-            self._location = location
+        if self.location != location:
+            self.location = location
 
             # have we entered a tile with a emitter?
             for emitter in emitters:
@@ -48,20 +60,27 @@ class BeatBug(pygame.sprite.Sprite):
             # the bearing on the tile the bug is now in is different from the current bearing, 
             # which means a direction change is going to happen... soon...
             # we wait to change direction until we've moved through the centre of the new tile
-            if ((self._bearing == 'N' and y(self.rect.center) < y(get_grid_rect(location).center))
-              or (self._bearing == 'S' and y(self.rect.center) > y(get_grid_rect(location).center))
-              or (self._bearing == 'W' and x(self.rect.center) < x(get_grid_rect(location).center))
-              or (self._bearing == 'B' and x(self.rect.center) > x(get_grid_rect(location).center))
-              or (self._bearing == 'E' and x(self.rect.center) > x(get_grid_rect(location).center))):
+            centre = get_tile_rect(location).center
+            if ((self._bearing == 'N' and y(self.rect.center) < y(centre))
+              or (self._bearing == 'S' and y(self.rect.center) > y(centre))
+              or (self._bearing == 'W' and x(self.rect.center) < x(centre))
+              or (self._bearing == 'B' and x(self.rect.center) > x(centre))
+              or (self._bearing == 'E' and x(self.rect.center) > x(centre))):
                 self.change_bearing(new_bearing, location)
               
         # movement
         direction = get_direction_vector(self._bearing)
         
-        # update screen position
-        self.rect.x += direction.x
-        self.rect.y += direction.y
-        self._location = location
+        # movement is based on the time since leaving the last reference position
+        elapsed_time = frame_ticks - self.t0
+        distance = elapsed_time * self.speed / 1000.0
+
+        # update screen position (one of either the x or y will always be 0)
+        self.rect.centerx = x(self.reference_position) + direction.x * distance
+        self.rect.centery = y(self.reference_position) + direction.y * distance
+
+        timeline_logger.log(f"bug{self.id}:moved to:{self.rect.center}", frame_ticks)
+        self.location = location
         
   
     def change_bearing(self, new_bearing, location):

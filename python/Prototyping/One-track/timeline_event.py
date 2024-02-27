@@ -1,5 +1,6 @@
 import pygame
 from globals import *
+from timeline_logger import timeline_logger
 
 class TimelineEvent():
 
@@ -23,11 +24,14 @@ class TimelineEvent():
         self._t += gap
 
 
-    def run(self):
-        self._on_due()
+    def run(self, frame_ticks):
+        timeline_logger.log(f"running timeline event due at {self._t}", frame_ticks)
+        self._on_due(self._t, frame_ticks)
         self._iterations += 1
-        msg = "TimelineEvent: Rescheduling from to t={} to t={}"
-        print (msg.format(self._t, self._t + self._interval))
+        msg = "TimelineEvent: frame={}: Rescheduling from to t={} to t={}"
+        log(4, msg.format(frame_ticks, self._t, self._t + self._interval))
+
+        
         # reschedule for next loop
         self._t = self._t + self._interval
         

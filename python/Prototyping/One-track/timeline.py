@@ -1,50 +1,43 @@
 import pygame
 from globals import *
 from timeline_event import TimelineEvent
-
+from timeline_logger import timeline_logger
 
 class Timeline():
 
-
     def __init__(self):
         self._paused = False
-        self._timeline_events = []
+        self._event_queue = []
 
 
     def add_event(self, event):
-        self._timeline_events.append(event)
+        self._event_queue.append(event)
 
 
     def pause(self):
         self._paused = True
-        self.paused_at = pygame.time.get_ticks()
 
 
-    def unpause(self):
-        self._paused = False
-        gap = pygame.time.get_ticks() - self.paused_at
-        print ("unpausing - gap = %s" % gap)
-        for event in self._timeline_events:
+    def unpause(self, gap):
+        for event in self._event_queue:
             event.unpause(gap)
+        self._paused = False
 
 
-    def update(self):
-
+    def update(self, frame_ticks):
         if self._paused == True:
             return
 
         cleanup = []
-
-        t = pygame.time.get_ticks()
         
         # run timeline events which are due
-        for event in self._timeline_events:
-            if event.is_due(t):
-                event.run()
+        for event in self._event_queue:
+            if event.is_due(frame_ticks):
+                event.run(frame_ticks)
 
                 if event.loop != 0 and event.iterations >= event.loop:
                     cleanup.append(event)
 
         # cleanup completed timeline events
         for event in cleanup:
-            self._timeline_events.remove(event)
+            self._event_queue.remove(event)

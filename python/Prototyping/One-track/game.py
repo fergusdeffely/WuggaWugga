@@ -6,6 +6,7 @@ from session import Session
 from session import GameState
 from wugga_io import Output
 from ui import UI
+from timeline_logger import timeline_logger
 from timeline import Timeline
 from timeline_event import TimelineEvent
 from tile import Tile
@@ -21,19 +22,20 @@ class Game():
 
         # Pygame setup
         pygame.init()
-        self.clock = pygame.time.Clock()
+        self.clock = pygame.time.Clock()        
 
         screen = pygame.display.set_mode(SCREEN_SIZE)
         self.out = Output(screen, Audio())
         level = Level(level_map, self.out)
 
         timeline = Timeline()
-        spawn_beatbug_event = TimelineEvent(pygame.time.get_ticks(), 
-                                            level.spawn_beatbug, 
-                                            0, 2000)
+        self.t0 = pygame.time.get_ticks()
+        timeline_logger.start(self.t0)
+        timeline_logger.log("started")
+        spawn_beatbug_event = TimelineEvent(self.t0, level.spawn_beatbug, 0, 2000)
         timeline.add_event(spawn_beatbug_event)
 
-        self.session = Session(timeline, GameState.RUNNING)
+        self.session = Session(timeline, timeline_logger, GameState.RUNNING)
         ui_manager = pygame_gui.UIManager(SCREEN_SIZE, "ui_theme.json")
         
         mouse = pygame.sprite.GroupSingle(Mouse())
@@ -42,7 +44,9 @@ class Game():
 
     def run(self):
         while True:
-            time_delta = self.clock.tick(60)/1000.0
+            frame_ticks = pygame.time.get_ticks()
+            time_delta = self.clock.tick(60)
+            timeline_logger.log(f"loop:delta={time_delta}", frame_ticks)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -60,10 +64,10 @@ class Game():
 
                 self.ui.manager.process_events(event)
 
-            self.session.timeline.update()
+            self.session.timeline.update(frame_ticks)
             self.out.video.fill("black")
 
-            self.ui.update(time_delta, self.session)
+            self.ui.update(frame_ticks, time_delta, self.session)
             self.ui.draw(self.out.video, self.session)
 
             pygame.display.update()

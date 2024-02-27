@@ -1,7 +1,7 @@
 import pygame
 import copy
 from globals import *
-from session import GameState
+from timeline_logger import timeline_logger
 from tracktile import TrackTile
 from beatbug import BeatBug
 from emitter import Emitter
@@ -15,6 +15,7 @@ class Level:
         self._tiles = pygame.sprite.Group()
         self._assistants = pygame.sprite.Group()
         self._initialise(data)
+        self._paused = False
 
     def _initialise(self, data):
         # add the tiles        
@@ -35,18 +36,45 @@ class Level:
         self._emitters = pygame.sprite.Group()
 
 
-    def update(self, gamestate, audio):
-        if gamestate == GameState.RUNNING:
+    def update(self, frame_ticks, audio):
+        if self._paused == False:
             self._tiles.update()
-            self._emitters.update()
-            self._bugs.update(self._data, self._emitters, audio)
+            # emitters need to know where bugs are and bugs need
+            # to know where emitters are            
+            self._emitters.update(self._bugs, audio)
+            self._bugs.update(frame_ticks, self._data, self._emitters, audio)
 
 
     def draw(self, surface):
+        if DRAW_GRID == True:
+            self.draw_grid(surface)
         self._tiles.draw(surface)
         self._assistants.draw(surface)
         self._emitters.draw(surface)
         self._bugs.draw(surface)
+
+
+    def pause(self):
+        self._paused = True
+
+
+    def unpause(self, gap):
+        self._paused = False
+        for bug in self._bugs:
+            bug.adjust_for_pause(gap)
+
+
+    def draw_grid(self, surface):
+        width_in_tiles = len(self._data[0])
+        height_in_tiles = len(self._data)
+
+        # vertical lines
+        for x in range(width_in_tiles):
+            pygame.draw.line(surface, "#75757575", (x*TILE_SIZE, 0), (x*TILE_SIZE, height_in_tiles * TILE_SIZE))
+
+        # horiztonal lines
+        for y in range(height_in_tiles):
+            pygame.draw.line(surface, "#75757575", (0, y*TILE_SIZE), (width_in_tiles * TILE_SIZE, y*TILE_SIZE))
 
 
     def handle_click(self, position, session):
@@ -102,11 +130,9 @@ class Level:
 
         return False
 
-    
-    def spawn_beatbug(self):
-        if(self._spawner_location):
-            bug = BeatBug(self._spawner_location)
-            self._bugs.add(bug)
 
-    def contains_emitter(self, location):
-        return False
+    def spawn_beatbug(self, due_ticks, frame_ticks):
+        if(self._spawner_location):
+            bug = BeatBug(self._spawner_location, due_ticks)
+            timeline_logger.log(f"bug{bug.id}:spawned", frame_ticks)
+            self._bugs.add(bug)

@@ -13,14 +13,10 @@ class Session():
 
     selected_assistant_groupsingle = None
 
-    def __init__(self, timeline, gamestate):
+    def __init__(self, timeline, timeline_logger, gamestate):
+        self.timeline_logger = timeline_logger
         self.timeline = timeline
         self.gamestate = gamestate
-
-
-    def update(time_delta):
-        self.timeline.update(pygame.time.get_ticks())
-
 
     @property
     def selected_assistant(self):
