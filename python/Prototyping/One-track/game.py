@@ -31,11 +31,10 @@ class Game():
         timeline = Timeline()
         self.t0 = pygame.time.get_ticks()
         timeline_logger.start(self.t0)
-        timeline_logger.log("started")
         spawn_beatbug_event = TimelineEvent(self.t0, level.spawn_beatbug, 0, 2000)
         timeline.add_event(spawn_beatbug_event)
 
-        self.session = Session(timeline, timeline_logger, GameState.RUNNING)
+        self.session = Session(timeline, timeline_logger, self.t0, GameState.RUNNING)
         ui_manager = pygame_gui.UIManager(SCREEN_SIZE, "ui_theme.json")
         
         mouse = pygame.sprite.GroupSingle(Mouse())
@@ -56,7 +55,7 @@ class Game():
                     print(f"Event: MouseButtonUp : {event.button} at {screen_to_grid(event.pos)}")
                     if event.button == 1:
                         if self.session.gamestate == GameState.RUNNING:
-                            self.ui.level.handle_click(event.pos, self.session)
+                            self.ui.level.handle_click(frame_ticks, event.pos, self.session)
 
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     print ("Event: pygame_gui.UI_BUTTON_PRESSED :")

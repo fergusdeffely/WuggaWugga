@@ -9,6 +9,7 @@ class TimelineLogger():
 
     def start(self, t):
         self._t = t
+        self.log("started", t)
 
 
     def log(self, data, t=-1):

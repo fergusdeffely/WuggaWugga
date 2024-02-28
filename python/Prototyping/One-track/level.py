@@ -41,7 +41,7 @@ class Level:
             self._tiles.update()
             # emitters need to know where bugs are and bugs need
             # to know where emitters are            
-            self._emitters.update(self._bugs, audio)
+            self._emitters.update(frame_ticks, self._bugs, audio)
             self._bugs.update(frame_ticks, self._data, self._emitters, audio)
 
 
@@ -77,7 +77,7 @@ class Level:
             pygame.draw.line(surface, "#75757575", (0, y*TILE_SIZE), (width_in_tiles * TILE_SIZE, y*TILE_SIZE))
 
 
-    def handle_click(self, position, session):
+    def handle_click(self, frame_ticks, position, session):
 
         if session.selected_assistant == None:
             return
@@ -88,9 +88,10 @@ class Level:
             assistant = copy.deepcopy(session.selected_assistant)
             assistant.location = location
             # create an emitter
-            emitter = Emitter(assistant.emitter_type, location, 
-                              assistant.colour)
+            t0 = session.get_synchronised_t0(frame_ticks)            
+            emitter = Emitter(t0, assistant.emitter_type, location, assistant.colour)            
             emitter.assistant = assistant
+            timeline_logger.log(f"level: create em{emitter.id} at:{emitter.rect.center} t0:{t0}", frame_ticks)
 
             # add a new assistant to the level
             self._assistants.add(assistant)
@@ -134,5 +135,5 @@ class Level:
     def spawn_beatbug(self, due_ticks, frame_ticks):
         if(self._spawner_location):
             bug = BeatBug(self._spawner_location, due_ticks)
-            timeline_logger.log(f"bug{bug.id}:spawned", frame_ticks)
+            timeline_logger.log(f"bug{bug.id}:spawned, t0:{bug.t0}", frame_ticks)
             self._bugs.add(bug)

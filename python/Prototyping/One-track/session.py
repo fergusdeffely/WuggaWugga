@@ -13,10 +13,15 @@ class Session():
 
     selected_assistant_groupsingle = None
 
-    def __init__(self, timeline, timeline_logger, gamestate):
+    def __init__(self, timeline, timeline_logger, t0, gamestate):
         self.timeline_logger = timeline_logger
         self.timeline = timeline
         self.gamestate = gamestate
+        self._t0 = t0
+
+    def get_synchronised_t0(self, frame_ticks):        
+        seconds = (int)(frame_ticks / 1000)
+        return seconds * 1000 + 1000 + self._t0
 
     @property
     def selected_assistant(self):

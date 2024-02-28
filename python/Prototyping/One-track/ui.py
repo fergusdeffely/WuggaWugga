@@ -114,6 +114,7 @@ class UI():
         
 
     def unpause(self, gap):
+        session.t0 = (session.t0 + gap) % 500
         self.level.unpause(gap)
 
         

@@ -14,22 +14,14 @@ Moving emitters:
 *- check for bounds and change direction
 *- fix collisions between emitters and beatbugs
 
-Synchronisation:
- - fix turning corners
-*- fix pause
-*- investigate synchronisation of emitters/beatbugs over 
-   extended time range
-*- investigate possibility of controlling timing of movement 
-   through timeline. added a mechanism based on relative time
-   and distance from point of departure
+Examine logging with consideration to performance:
+ - consider removing uninteresting frames
  
 Port emitter movement logic to beatbug
 
 Enhance drawing of shadow for selected assistant.
 Draw allowed placements underneath bugs, but over
 tracks.
-
-Examine logging with consideration to performance
 
 Implement a tile map:
 
@@ -59,3 +51,12 @@ Complete:
  ** Not an audio issue - a sequencing issue. Sounds played out
     of synch/sequence can just be discordant
  
+ Synchronisation:
+*- emitters
+*- fix turning corners
+*- fix pause
+*- investigate synchronisation of emitters/beatbugs over 
+   extended time range
+*- investigate possibility of controlling timing of movement 
+   through timeline. added a mechanism based on relative time
+   and distance from point of departure
