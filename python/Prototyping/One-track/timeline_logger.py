@@ -13,7 +13,7 @@ class TimelineLogger():
 
 
     def log(self, data, t=-1):
-        if t != self._t and t != -1:
+        if t != self._t and t != -1:            
             self.write()
             self._entries.clear()
             self._entries.append(data)

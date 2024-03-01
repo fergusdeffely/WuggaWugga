@@ -15,8 +15,13 @@ class Emitter(pygame.sprite.Sprite):
         self._type = emitter_type
         self.location = location
         self.direction = pygame.Vector2(0,0)
+        if self._type == EmitterType.BASS:            
+            self.direction = pygame.Vector2(0,1)
         self.image = pygame.Surface((TILE_SIZE, TILE_SIZE))
         self.image.set_colorkey("black")
+        self.colour = "#0000ff"
+        self.colour_play = "#55aaff"
+        self.colour_suspended = "#888888"
 
         position = grid_to_screen(location)
         self.rect = pygame.Rect(x(position), y(position), TILE_SIZE, TILE_SIZE)
@@ -24,32 +29,68 @@ class Emitter(pygame.sprite.Sprite):
         self._t0 = t0
         self._speed = EMITTER_SPEED
         self._checkpoint = self.rect.center
-        self._wait_for_synch = True
+        # suspend until we pass t0
+        self.suspended = True
+        self._t_suspended = t0
+        self._suspend_ticks = 0
+        self.channel_id = None
 
+        self.redraw()
+
+
+    def redraw(self):
         # draw emitter icon
-        if self._type == EmitterType.KICK:
-            pygame.draw.circle(self.image, "blue", (TILE_SIZE/2, TILE_SIZE/2), TILE_SIZE / 3)
-        if self._type == EmitterType.BASS:
-            pygame.draw.circle(self.image, "blue", (TILE_SIZE/2, TILE_SIZE/2), TILE_SIZE / 3)
-            self.direction = pygame.Vector2(0,1)
+        colour = self.colour
+        if self.suspended:
+            colour = self.colour_suspended
+        elif self.channel_id is not None:
+            colour = self.colour_play
+
+        pygame.draw.circle(self.image, colour, (TILE_SIZE/2, TILE_SIZE/2), TILE_SIZE / 3)
 
 
-    def play(self, audio):
+    def play(self, audio):        
         if self._type == EmitterType.KICK:
-            audio.play_beat()
+            self.channel_id = audio.play_beat()
         elif self._type == EmitterType.BASS:
-            audio.play_bass()
+            self.channel_id = audio.play_bass()
+        self.redraw()
+
+
+    def suspend(self, frame_ticks, suspend_ticks):
+        self._t0 += suspend_ticks
+
+        if self.suspended:
+            self._suspend_ticks += suspend_ticks
+            timeline_logger.log(f"em{self.id}: add suspend:{suspend_ticks}: total sus:{self._suspend_ticks} new t0:{self._t0}", frame_ticks)
+            print(f"em{self.id}: add suspend:{suspend_ticks}: total sus:{self._suspend_ticks} new t0:{self._t0}", frame_ticks)
+        else:
+            self.suspended = True
+            self._t_suspended = frame_ticks
+            self._suspend_ticks = suspend_ticks
+            timeline_logger.log(f"em{self.id}: suspend: at:{self._t_suspended} for:{self._suspend_ticks}:  new t0:{self._t0}", frame_ticks)
+            print(f"em{self.id}: suspend: at:{self._t_suspended} for:{self._suspend_ticks}: new t0:{self._t0}", frame_ticks)
+        
+        self.redraw()
+
+
+    def adjust_for_pause(self, gap):
+        self._t0 += gap
+        if self.suspended:
+            self._t_suspended += gap
 
 
     def update(self, frame_ticks, beatbugs, audio):
         
-        if self._wait_for_synch == True and self._t0 > frame_ticks:
-            # pending launch
-            timeline_logger.log(f"em{self.id}: pending")            
-            return
-        else:
-            self._wait_for_synch = False
-        
+        if self.suspended == True:
+            if self._t_suspended + self._suspend_ticks > frame_ticks:
+                # pending launch
+                timeline_logger.log(f"em{self.id}: suspended")
+                return
+            else:
+                timeline_logger.log(f"em{self.id}: sus?:{self.suspended} at:{self._t_suspended} sus_ticks:{self._suspend_ticks}")
+                self.suspended = False
+                self.redraw()                
 
         # movement is based on the time since leaving the last reference position
         elapsed_time = frame_ticks - self._t0
@@ -58,7 +99,7 @@ class Emitter(pygame.sprite.Sprite):
         # update screen position (one of either the x or y will always be 0)
         self.rect.centerx = x(self._checkpoint) + self.direction.x * distance
         self.rect.centery = y(self._checkpoint) + self.direction.y * distance
-        timeline_logger.log(f"em{self.id}: moveto: {self.rect.center}", frame_ticks)
+        timeline_logger.log(f"em{self.id}: t0:{self._t0} chk:{self._checkpoint} moveto: {self.rect.center}", frame_ticks)
         
         # has location changed?
         new_location = screen_to_grid(self.rect.center)        
@@ -98,7 +139,7 @@ class Emitter(pygame.sprite.Sprite):
         #  x2 > x1
         # -x1 > -x2
 
-        if self.rect.centerx * self.direction.x > x(tile_centre) * self.direction.x:    
+        if self.rect.centerx * self.direction.x >= x(tile_centre) * self.direction.x:    
             # try left, try right, then try reverse
             if self.direction.x == 1 and E(exit_info) == False:
                 if N(exit_info): return pygame.Vector2(0, -1)
@@ -109,14 +150,14 @@ class Emitter(pygame.sprite.Sprite):
                 elif N(exit_info): return pygame.Vector2(0, -1)
                 elif E(exit_info): return pygame.Vector2(1, 0)
 
-        if self.rect.centery * self.direction.y > y(tile_centre) * self.direction.y:
+        if self.rect.centery * self.direction.y >= y(tile_centre) * self.direction.y:
             if self.direction.y == 1 and S(exit_info) == False:
                 if E(exit_info): return pygame.Vector2(1, 0)
                 elif W(exit_info): return pygame.Vector2(-1, 0)
                 elif N(exit_info): return pygame.Vector2(0, -1)
             if self.direction.y == -1 and N(exit_info) == 0:
                 if W(exit_info): return pygame.Vector2(-1, 0)
-                elif E(exit_info): return pygame.Vector2(1, 0)
+                elif E(exit_info): return pygame        .Vector2(1, 0)
                 elif S(exit_info): return pygame.Vector2(0, 1)
 
         return self.direction

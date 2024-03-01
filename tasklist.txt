@@ -1,5 +1,34 @@
+-----------
 In progress:
 -----------
+
+Defects:
+------
+
+ Occasionally, pausing causes beatbug jumping at corners
+  - last seen 1 day ago
+
+
+Features and improvements:
+-------------------------
+
+Suspend assistant:
+ - show suspended indicator/timer
+ - highlight should surround shape rather than segments 
+*- highlight assistant on mouseover
+*- show suspended indicator
+*- each left click suspends an additional second
+
+Remove assistant:
+ - right-click returns assistant to palette
+ 
+Investigate drawing of mouse outside of GroupSingle
+
+Update level data definition:
+ - data format
+ - use exit system (like emitters/assistants)
+ - port emitter movement logic to beatbug
+ - investigate the ease of implementing a level editor
 
 Add cross track support:
  - enforce placement rules for more complex shapes
@@ -13,11 +42,9 @@ Moving emitters:
 *- basic movement
 *- check for bounds and change direction
 *- fix collisions between emitters and beatbugs
-
-Examine logging with consideration to performance:
- - consider removing uninteresting frames
  
-Port emitter movement logic to beatbug
+Level start countdown:
+ - 3 - 2 - 1 - disco
 
 Enhance drawing of shadow for selected assistant.
 Draw allowed placements underneath bugs, but over
@@ -27,11 +54,39 @@ Implement a tile map:
 
 Add panel for side menu:
 
+Add new assistant types:
+ - splitters? tunnellers? (flatbugs?)
+ - container/capacitor
+ - pivoters
+ - butterflies
+
+Make/find some graphics:
+
+Build some tunes:
+
+Investigate Midi:
+ - Could a level palette be built from a midi sequence?
+
 ----------------------------------------
 
 
 Complete:
 --------
+
+* Change emitter colour when playing
+
+* Examine logging with consideration to performance:
+* - consider removing uninteresting frames
+
+* Synchronisation:
+* - emitters
+* - fix turning corners
+* - fix pause
+* - investigate synchronisation of emitters/beatbugs over 
+    extended time range
+* - investigate possibility of controlling timing of movement 
+    through timeline. added a mechanism based on relative time
+    and distance from point of departure
 
 * Add a pause button:
 * - add a hud
@@ -51,12 +106,7 @@ Complete:
  ** Not an audio issue - a sequencing issue. Sounds played out
     of synch/sequence can just be discordant
  
- Synchronisation:
-*- emitters
-*- fix turning corners
-*- fix pause
-*- investigate synchronisation of emitters/beatbugs over 
-   extended time range
-*- investigate possibility of controlling timing of movement 
-   through timeline. added a mechanism based on relative time
-   and distance from point of departure
+
+Defects Complete:
+----------------
+* FIXED: Placement of assistants is possible over other assistants.

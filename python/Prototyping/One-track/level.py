@@ -5,7 +5,7 @@ from timeline_logger import timeline_logger
 from tracktile import TrackTile
 from beatbug import BeatBug
 from emitter import Emitter
-from mouse import Mouse
+from mouse import MouseMode
 
 class Level:
 
@@ -63,6 +63,9 @@ class Level:
         for bug in self._bugs:
             bug.adjust_for_pause(gap)
 
+        for emitter in self._emitters:
+            emitter.adjust_for_pause(gap)
+
 
     def draw_grid(self, surface):
         width_in_tiles = len(self._data[0])
@@ -77,35 +80,47 @@ class Level:
             pygame.draw.line(surface, "#75757575", (0, y*TILE_SIZE), (width_in_tiles * TILE_SIZE, y*TILE_SIZE))
 
 
-    def handle_click(self, frame_ticks, position, session):
+    def handle_click(self, frame_ticks, position, session, mouse):        
 
-        if session.selected_assistant == None:
+        print(f"handle_click: mouse mode:{mouse.mode}")
+
+        if mouse.mode == MouseMode.SELECTION:
+            location = screen_to_grid(position)
+            anchored_assistant = self.assistant_at(location)
+            if anchored_assistant:
+                anchored_assistant.emitter.suspend(frame_ticks, 1000)
             return
 
-        location = screen_to_grid(position)
+        if session.selected_assistant == None:
+            return        
 
-        if self.is_assistant_placeable(location, session.selected_assistant):
+        if self.is_assistant_placeable(session.selected_assistant):
+            location = screen_to_grid(position)
+            # set the assistant into the level
             assistant = copy.deepcopy(session.selected_assistant)
-            assistant.location = location
+            assistant.anchored_location = location
             # create an emitter
             t0 = session.get_synchronised_t0(frame_ticks)            
             emitter = Emitter(t0, assistant.emitter_type, location, assistant.colour)            
             emitter.assistant = assistant
+            assistant.emitter = emitter
             timeline_logger.log(f"level: create em{emitter.id} at:{emitter.rect.center} t0:{t0}", frame_ticks)
 
             # add a new assistant to the level
             self._assistants.add(assistant)
             self._emitters.add(emitter)
+            mouse.mode = MouseMode.SELECTION
 
             session.selected_assistant_groupsingle = None
 
 
     def assistant_at(self, location):
         for assistant in self._assistants.sprites():
-            if assistant.has_segment(location):
-                return True
+            if assistant.has_node(location):
+                return assistant
 
-        return False
+        return None
+
 
     def track_tile_at(self, location):
         # check if the location is valid for placement
@@ -117,19 +132,33 @@ class Level:
             return False
 
 
-    def is_assistant_placeable(self, location, assistant):
-        if self.assistant_at(location):
-            return False
-
-        count = 0
-        for location in assistant.get_segment_locations():
+    def is_assistant_placeable(self, assistant):
+        locations = assistant.get_node_locations()
+        track_tile_count = 0
+        for location in locations:
+            if x(location) < 0 or y(location) < 0:
+                continue
+            if self.assistant_at(location) is not None:
+                return False            
             if self.track_tile_at(location):
-                count += 1
+                track_tile_count += 1
 
-        if count == 1:
+        if track_tile_count == 1:
             return True
 
         return False
+
+
+    def check_for_mouseover(self, location):        
+        highlighted_assistant = self.assistant_at(location)
+        for assistant in self._assistants:
+            if assistant == highlighted_assistant:
+                assistant.highlight = True
+            else:
+                assistant.highlight = False
+            assistant.redraw()
+
+        return highlighted_assistant is None
 
 
     def spawn_beatbug(self, due_ticks, frame_ticks):
@@ -137,3 +166,11 @@ class Level:
             bug = BeatBug(self._spawner_location, due_ticks)
             timeline_logger.log(f"bug{bug.id}:spawned, t0:{bug.t0}", frame_ticks)
             self._bugs.add(bug)
+
+            
+    def on_channel_ready(self, channel_id):
+        print(f"{pygame.time.get_ticks()}:level.on_channel_ready: channel_id:{channel_id}")
+        for emitter in self._emitters:
+            if emitter.channel_id == channel_id:
+                emitter.channel_id = None
+                emitter.redraw()

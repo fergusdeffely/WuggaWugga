@@ -2,21 +2,31 @@ import pygame
 from globals import *
 
 
+class MouseMode(Enum):
+    SELECTION = 0
+    PLACEMENT = 1
+
+
 class Mouse(pygame.sprite.Sprite):
   
     def __init__(self):
         super().__init__()      
 
-        self.image = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA, 32)
-        self.image = self.image.convert_alpha()
+        self.image = pygame.Surface((TILE_SIZE, TILE_SIZE))
+        self.image.set_colorkey("black")
         self.rect = self.image.get_rect()
-
-        frame = pygame.Rect((0,0), (TILE_SIZE, TILE_SIZE))
-        pygame.draw.rect(self.image, "green", frame, 3, border_radius=3)
+        self.position = None
+        self.mode = MouseMode.SELECTION
+        self.draw_cursor()
 
       
     def update(self, session, level):
         position = pygame.mouse.get_pos()
+        if position == self.position:
+            # nothing to do if position hasn't changed
+            return
+        self.position = position
+
         topleft = get_tile_topleft(position)
 
         # different grid square?
@@ -32,15 +42,18 @@ class Mouse(pygame.sprite.Sprite):
 
                 # change the assistant's colour if it's placeable at this location
                 location = screen_to_grid(self.rect.topleft)
-                if level.is_assistant_placeable(location, session.selected_assistant):
+                if level.is_assistant_placeable(session.selected_assistant):
                     colour = session.selected_assistant.colour
 
                 session.selected_assistant.redraw(colour)
-
-            self.draw_cursor()
             
+            location = screen_to_grid(self.rect.center)
+            show_cursor = level.check_for_mouseover(location)
+            self.draw_cursor(show_cursor)
 
-    def draw_cursor(self):
+
+    def draw_cursor(self, show_cursor=True):
+        self.image.fill("black")
         frame = pygame.Rect((0,0), (TILE_SIZE, TILE_SIZE))
-        pygame.draw.rect(self.image, "green", frame, 3, border_radius=3)
-  
+        if show_cursor:
+            pygame.draw.rect(self.image, "green", frame, 3, border_radius=3)

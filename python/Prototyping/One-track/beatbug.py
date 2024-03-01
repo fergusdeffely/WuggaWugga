@@ -14,7 +14,7 @@ class BeatBug(pygame.sprite.Sprite):
         self.image = pygame.Surface((BEATBUG_SIZE, BEATBUG_SIZE))
         self.image.fill("blue")
         self.rect = self.image.get_rect()
-        self.location = location        
+        self.location = location
         self._bearing = 'B'
         self._centre_in_gridrect(self.location, True, True)
         self.t0 = t0
@@ -50,8 +50,9 @@ class BeatBug(pygame.sprite.Sprite):
         self.rect.centerx = x(self._checkpoint) + direction.x * distance
         self.rect.centery = y(self._checkpoint) + direction.y * distance
 
-        timeline_logger.log(f"bug{self.id}:moved to:{self.rect.center}", frame_ticks)
-        current_location = screen_to_grid(self.rect.center)        
+        if LOG_BUG_MOVEMENT:
+            timeline_logger.log(f"bug{self.id}:moved to:{self.rect.center}", frame_ticks)
+        current_location = screen_to_grid(self.rect.center)
 
         # check if the bug has entered a new tile
         if self.location != current_location:
@@ -59,7 +60,7 @@ class BeatBug(pygame.sprite.Sprite):
 
             # have we entered a tile with a emitter?
             for emitter in emitters:
-                if emitter.location == self.location:
+                if emitter.location == self.location and emitter.suspended == False:
                     emitter.play(audio)
 
         # TODO: optimise by adding else?

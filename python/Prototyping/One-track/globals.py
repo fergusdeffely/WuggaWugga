@@ -1,8 +1,11 @@
 import pygame
+import pygame_gui
 from enums import *
 from level_data import level_map
 
 LOGGING_LEVEL = 1
+LOG_FRAME_DELTAS = False
+LOG_BUG_MOVEMENT = True
 
 NULL_LOCATION = (None, None)
 TILE_SIZE = 32
@@ -13,7 +16,7 @@ SCREEN_SIZE = (SCREEN_WIDTH, SCREEN_HEIGHT)
 DRAW_GRID = True
 
 BEATBUG_SIZE = 16
-BEATBUG_SPEED = TILE_SIZE
+BEATBUG_SPEED = TILE_SIZE * 2
 EMITTER_SPEED = TILE_SIZE
 
 H_CENTER_BEATBUG = (TILE_SIZE - BEATBUG_SIZE) / 2
@@ -21,8 +24,9 @@ V_CENTER_BEATBUG = (TILE_SIZE - BEATBUG_SIZE) / 2
 
 SPAWN_TIMER_DURATION = 2000
 
-SPAWN_TIMER_EVENT = pygame.USEREVENT + 1
-CHANNEL_READY_EVENT = pygame.USEREVENT + 2
+BASE_WUGGA_USEREVENT = pygame_gui.UI_TEXT_EFFECT_FINISHED + 1
+
+CHANNEL_READY_EVENT = BASE_WUGGA_USEREVENT + 0
 
 ASSISTANT_ROSTER = [("red", AssistantType.KICK_EMITTER),
                     ("yellow", AssistantType.BASS_EMITTER)]
@@ -34,7 +38,7 @@ def x(coords):
 
 def y(coords):
     return coords[1]
-
+        
 def N(exit):
     return exit[0]
 
@@ -83,5 +87,5 @@ def add_tuples(tup1, tup2):
     return tuple(map(lambda i, j: i + j, tup1, tup2))
 
 def log(level, message):
-    if level >= LOGGING_LEVEL:
+    if level <= LOGGING_LEVEL:
         print(message)

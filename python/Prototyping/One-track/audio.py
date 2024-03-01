@@ -22,13 +22,14 @@ class Audio():
 
         if sound != None:
             self._channel = sound.play(maxtime=maxtime)
-            
-            # NOTE: leaving commented code to register sending of events
-            #self._channel.set_endevent(CHANNEL_READY_EVENT)
+            log(2, f"{pygame.time.get_ticks()}:Audio._play_sound: on channel: {self._channel.id}")
+            self._channel.set_endevent(CHANNEL_READY_EVENT)
+
+        return self._channel.id
 
 
     def play_beat(self):
-        self._play_sound("onekick", 200)
+        return self._play_sound("onekick", 200)
 
     def play_bass(self):
-        self._play_sound("synthbass", 200)
+        return self._play_sound("synthbass", 200)

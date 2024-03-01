@@ -4,6 +4,8 @@ import pygame_gui
 from globals import *
 from session import GameState
 from assistant import Assistant
+from mouse import MouseMode
+
 
 class AssistantUIButton(pygame_gui.elements.UIButton):
 
@@ -28,6 +30,7 @@ class AssistantUIButton(pygame_gui.elements.UIButton):
             session.selected_assistant = assistant
 
             # refresh the mouse
+            ui.mouse.sprite.mode = MouseMode.PLACEMENT
             ui.mouse.sprite.draw_cursor()
 
 

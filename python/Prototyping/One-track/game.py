@@ -44,8 +44,9 @@ class Game():
     def run(self):
         while True:
             frame_ticks = pygame.time.get_ticks()
-            time_delta = self.clock.tick(60)
-            timeline_logger.log(f"loop:delta={time_delta}", frame_ticks)
+            time_delta = self.clock.tick(50)
+            if LOG_FRAME_DELTAS:
+                timeline_logger.log(f"loop:delta={time_delta}", frame_ticks)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -55,11 +56,15 @@ class Game():
                     print(f"Event: MouseButtonUp : {event.button} at {screen_to_grid(event.pos)}")
                     if event.button == 1:
                         if self.session.gamestate == GameState.RUNNING:
-                            self.ui.level.handle_click(frame_ticks, event.pos, self.session)
+                            self.ui.level.handle_click(frame_ticks, event.pos, self.session, self.ui.mouse.sprite)
 
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                    print ("Event: pygame_gui.UI_BUTTON_PRESSED :")
+                    print (f"Event{event.type}: pygame_gui.UI_BUTTON_PRESSED : {event}")
                     self.ui.handle_gui_event(event, self.session)
+
+                if event.type == CHANNEL_READY_EVENT:
+                    print(f"Event{event.type}: Channel Ready: {event}")
+                    self.ui.level.on_channel_ready(event.code)
 
                 self.ui.manager.process_events(event)
 

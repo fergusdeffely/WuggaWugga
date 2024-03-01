@@ -102,7 +102,7 @@ class UI():
 
 
     def draw(self, surface, session):
-        self.level.draw(self._out.video)
+        self.level.draw(surface)
         self.manager.draw_ui(surface)        
         if session.selected_assistant is not None:
             session.selected_assistant_groupsingle.draw(surface)
@@ -113,10 +113,8 @@ class UI():
         self.level.pause()
         
 
-    def unpause(self, gap):
+    def unpause(self, session, gap):
         session.t0 = (session.t0 + gap) % 500
         self.level.unpause(gap)
-
-        
 
         
