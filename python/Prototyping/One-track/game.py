@@ -53,17 +53,17 @@ class Game():
                     sys.exit()
                 
                 if event.type == pygame.MOUSEBUTTONUP:
-                    print(f"Event: MouseButtonUp : {event.button} at {screen_to_grid(event.pos)}")
+                    log(3, f"Event: MouseButtonUp : {event.button} at {screen_to_grid(event.pos)}")
                     if event.button == 1:
                         if self.session.gamestate == GameState.RUNNING:
                             self.ui.level.handle_click(frame_ticks, event.pos, self.session, self.ui.mouse.sprite)
 
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                    print (f"Event{event.type}: pygame_gui.UI_BUTTON_PRESSED : {event}")
+                    log(3, f"Event{event.type}: pygame_gui.UI_BUTTON_PRESSED : {event}")
                     self.ui.handle_gui_event(event, self.session)
 
                 if event.type == CHANNEL_READY_EVENT:
-                    print(f"Event{event.type}: Channel Ready: {event}")
+                    log(3, f"Event{event.type}: Channel Ready: {event}")
                     self.ui.level.on_channel_ready(event.code)
 
                 self.ui.manager.process_events(event)

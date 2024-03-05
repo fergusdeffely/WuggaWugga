@@ -5,16 +5,18 @@ In progress:
 Defects:
 ------
 
- Occasionally, pausing causes beatbug jumping at corners
-  - last seen 1 day ago
+**Occasionally, pausing causes beatbug jumping at corners
+  Fix in place - last seen 0 days ago
+  
 
 
 Features and improvements:
 -------------------------
 
 Suspend assistant:
- - show suspended indicator/timer
+ - show suspended timer
  - highlight should surround shape rather than segments 
+*- add support for info text 
 *- highlight assistant on mouseover
 *- show suspended indicator
 *- each left click suspends an additional second
@@ -26,8 +28,8 @@ Investigate drawing of mouse outside of GroupSingle
 
 Update level data definition:
  - data format
- - use exit system (like emitters/assistants)
  - port emitter movement logic to beatbug
+ - use exit system (like emitters/assistants)
  - investigate the ease of implementing a level editor
 
 Add cross track support:
@@ -39,6 +41,7 @@ Add cross track support:
 
 Moving emitters:
  - test more advanced shapes
+ - test crossing bugtrack in more than one place
 *- basic movement
 *- check for bounds and change direction
 *- fix collisions between emitters and beatbugs

@@ -27,8 +27,8 @@ class WuggaUIButton(pygame_gui.elements.UIButton):
             else:               
                 gap = ticks - session.paused_at
                 timeline_logger.log(f"Timeline.unpause: at:{ticks}, gap:{gap}", ticks)
-                session.timeline.unpause(gap)
-                ui.unpause(session, gap)
+                session.unpause(gap)
+                ui.level.unpause(gap)
                 session.gamestate = GameState.RUNNING
                 self.set_text("Pause")                
 

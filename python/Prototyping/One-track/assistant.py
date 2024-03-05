@@ -21,12 +21,23 @@ class Assistant(pygame.sprite.Sprite):
         # node format:
         # (x_off, y_off) - from root node; defined in grid coords
         # (exit north, exit south, exit east, exit west) - path definition
-        if self.type == AssistantType.KICK_EMITTER:
-            self.nodes = [(0,0)]
-            self.exits = [(0,0,0,0)]
+        if self.type == AssistantType.KICK_EMITTER:            
+            self.nodes = {(0,0):(1,1,0,0), (0, 1):(1,0,0,0), (0,-1):(0,1,0,0)}
         if self.type == AssistantType.BASS_EMITTER:
-            self.nodes = [(0,0), (0, 1), (0,-1)]
-            self.exits = [(1,1,0,0), (1,0,0,0), (0,1,0,0)]
+            self.nodes = {(0, 0):(1,1,1,1), 
+                          (0, 1):(1,1,0,0),
+                          (0, 2):(1,1,0,0),
+                          (0, 3):(1,0,1,0),
+                          (1, 3):(0,0,1,1),
+                          (2, 3):(0,0,1,1),
+                          (3, 3):(1,0,0,1),
+                          (3, 2):(1,1,0,0),
+                          (3, 1):(1,1,0,0),
+                          (1, 0):(0,0,1,1),
+                          (2, 0):(0,0,1,1),
+                          (3, 0):(0,1,0,1),
+                          (0,-1):(0,1,0,0),
+                          (-1,0):(0,0,1,0)}
 
         extents = self.get_node_extents()
 
@@ -53,7 +64,6 @@ class Assistant(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.highlight = False
         self.update(position)
-
         self.redraw(self.shadow_colour)
 
 
@@ -70,7 +80,7 @@ class Assistant(pygame.sprite.Sprite):
     def get_node_locations(self):
         node_locations = []
         root_location = self.get_root_location()
-        for node_offset in self.nodes:
+        for node_offset in self.nodes.keys():
             node_locations.append((x(root_location) + x(node_offset), 
                                    y(root_location) + y(node_offset)))
 
@@ -92,7 +102,7 @@ class Assistant(pygame.sprite.Sprite):
         max_plus_y = 0
         max_minus_y = 0        
         
-        for node in self.nodes:
+        for node in self.nodes.keys():
             if node[0] > max_plus_x:
                 max_plus_x = node[0]
             if node[0] < max_minus_x:
@@ -112,9 +122,9 @@ class Assistant(pygame.sprite.Sprite):
         requested_location = screen_to_grid(position)
 
         # which node is the requested location in?
-        for i, offset in enumerate(self.nodes):
+        for offset in self.nodes.keys():
             if (x(self.anchored_location) + x(offset), y(self.anchored_location) + y(offset)) == requested_location:
-                return self.exits[i]
+                return self.nodes[offset]
             
         return (0,0,0,0)
 
@@ -126,7 +136,7 @@ class Assistant(pygame.sprite.Sprite):
 
     def redraw(self, colour=None):
         if colour == None: colour = self.colour        
-        for node in self.nodes:
+        for node in self.nodes.keys():
             rect = pygame.Rect((x(node) + x(self.rootnode_offset)) * TILE_SIZE,
                                (y(node) + y(self.rootnode_offset)) * TILE_SIZE,
                                TILE_SIZE, TILE_SIZE)

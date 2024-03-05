@@ -6,6 +6,7 @@ from tracktile import TrackTile
 from beatbug import BeatBug
 from emitter import Emitter
 from mouse import MouseMode
+from info_text import InfoText
 
 class Level:
 
@@ -14,8 +15,13 @@ class Level:
         self._data = data
         self._tiles = pygame.sprite.Group()
         self._assistants = pygame.sprite.Group()
+        self._bugs = pygame.sprite.Group()
+        self._emitters = pygame.sprite.Group()
         self._initialise(data)
         self._paused = False
+
+        self.info = InfoText((100,100), "info!", "red", True, "white")
+
 
     def _initialise(self, data):
         # add the tiles        
@@ -30,10 +36,6 @@ class Level:
                 elif cell == 'F':
                     # Finish
                     self.finish_location = (x, y)
-              
-        # create groups for the sprites
-        self._bugs = pygame.sprite.Group()
-        self._emitters = pygame.sprite.Group()
 
 
     def update(self, frame_ticks, audio):
@@ -52,6 +54,7 @@ class Level:
         self._assistants.draw(surface)
         self._emitters.draw(surface)
         self._bugs.draw(surface)
+        self.info.draw(surface)
 
 
     def pause(self):
@@ -82,8 +85,6 @@ class Level:
 
     def handle_click(self, frame_ticks, position, session, mouse):        
 
-        print(f"handle_click: mouse mode:{mouse.mode}")
-
         if mouse.mode == MouseMode.SELECTION:
             location = screen_to_grid(position)
             anchored_assistant = self.assistant_at(location)
@@ -100,8 +101,8 @@ class Level:
             assistant = copy.deepcopy(session.selected_assistant)
             assistant.anchored_location = location
             # create an emitter
-            t0 = session.get_synchronised_t0(frame_ticks)            
-            emitter = Emitter(t0, assistant.emitter_type, location, assistant.colour)            
+            t0 = session.get_synchronised_t0(frame_ticks)
+            emitter = Emitter(frame_ticks, t0, assistant.emitter_type, location, assistant.colour)            
             emitter.assistant = assistant
             assistant.emitter = emitter
             timeline_logger.log(f"level: create em{emitter.id} at:{emitter.rect.center} t0:{t0}", frame_ticks)
@@ -169,7 +170,6 @@ class Level:
 
             
     def on_channel_ready(self, channel_id):
-        print(f"{pygame.time.get_ticks()}:level.on_channel_ready: channel_id:{channel_id}")
         for emitter in self._emitters:
             if emitter.channel_id == channel_id:
                 emitter.channel_id = None

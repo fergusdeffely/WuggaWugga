@@ -47,8 +47,8 @@ class BeatBug(pygame.sprite.Sprite):
         distance = elapsed_time * self._speed / 1000.0
 
         # update screen position (one of either the x or y will always be 0)
-        self.rect.centerx = x(self._checkpoint) + direction.x * distance
-        self.rect.centery = y(self._checkpoint) + direction.y * distance
+        self.rect.centerx = round(x(self._checkpoint) + direction.x * distance)
+        self.rect.centery = round(y(self._checkpoint) + direction.y * distance)
 
         if LOG_BUG_MOVEMENT:
             timeline_logger.log(f"bug{self.id}:moved to:{self.rect.center}", frame_ticks)
@@ -96,6 +96,7 @@ class BeatBug(pygame.sprite.Sprite):
             timeline_logger.log(f"new t0:{self.t0}", frame_ticks)
             self._checkpoint = tile_centre
         self._bearing = new_bearing
+
         if self._bearing == 'N' or self._bearing == 'S':
             self._centre_in_gridrect(self.location, True, False)
         elif self._bearing == 'W' or self._bearing == 'E':

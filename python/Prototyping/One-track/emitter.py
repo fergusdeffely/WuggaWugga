@@ -7,16 +7,14 @@ class Emitter(pygame.sprite.Sprite):
 
     _current_id = 0
 
-    def __init__(self, t0, emitter_type, location, colour):
+    def __init__(self, frame_ticks, t0, emitter_type, location, colour):
         super().__init__()
 
         self.id = Emitter._current_id
         Emitter._current_id += 1
         self._type = emitter_type
         self.location = location
-        self.direction = pygame.Vector2(0,0)
-        if self._type == EmitterType.BASS:            
-            self.direction = pygame.Vector2(0,1)
+        self.direction = pygame.Vector2(0,1)
         self.image = pygame.Surface((TILE_SIZE, TILE_SIZE))
         self.image.set_colorkey("black")
         self.colour = "#0000ff"
@@ -31,8 +29,8 @@ class Emitter(pygame.sprite.Sprite):
         self._checkpoint = self.rect.center
         # suspend until we pass t0
         self.suspended = True
-        self._t_suspended = t0
-        self._suspend_ticks = 0
+        self._suspended_at_t = frame_ticks
+        self._suspend_for = t0 - frame_ticks
         self.channel_id = None
 
         self.redraw()
@@ -58,18 +56,20 @@ class Emitter(pygame.sprite.Sprite):
 
 
     def suspend(self, frame_ticks, suspend_ticks):
+        # suspend_ticks needs to be a multiple of 500 for this trick of 
+        # adjusting t0 forward to work
         self._t0 += suspend_ticks
 
         if self.suspended:
-            self._suspend_ticks += suspend_ticks
-            timeline_logger.log(f"em{self.id}: add suspend:{suspend_ticks}: total sus:{self._suspend_ticks} new t0:{self._t0}", frame_ticks)
-            print(f"em{self.id}: add suspend:{suspend_ticks}: total sus:{self._suspend_ticks} new t0:{self._t0}", frame_ticks)
+            self._suspend_for += suspend_ticks
+            timeline_logger.log(f"em{self.id}: add suspend:{suspend_ticks}: total sus:{self._suspend_for} new t0:{self._t0}", frame_ticks)
+            print(f"em{self.id}: add suspend:{suspend_ticks}: total sus:{self._suspend_for} new t0:{self._t0}", frame_ticks)
         else:
             self.suspended = True
-            self._t_suspended = frame_ticks
-            self._suspend_ticks = suspend_ticks
-            timeline_logger.log(f"em{self.id}: suspend: at:{self._t_suspended} for:{self._suspend_ticks}:  new t0:{self._t0}", frame_ticks)
-            print(f"em{self.id}: suspend: at:{self._t_suspended} for:{self._suspend_ticks}: new t0:{self._t0}", frame_ticks)
+            self._suspended_at_t = frame_ticks
+            self._suspend_for = suspend_ticks
+            timeline_logger.log(f"em{self.id}: suspend: at:{self._suspended_at_t} for:{self._suspend_for}:  new t0:{self._t0}", frame_ticks)
+            print(f"em{self.id}: suspend: at:{self._suspended_at_t} for:{self._suspend_for}: new t0:{self._t0}", frame_ticks)
         
         self.redraw()
 
@@ -77,28 +77,27 @@ class Emitter(pygame.sprite.Sprite):
     def adjust_for_pause(self, gap):
         self._t0 += gap
         if self.suspended:
-            self._t_suspended += gap
+            self._suspended_at_t += gap
 
 
     def update(self, frame_ticks, beatbugs, audio):
         
         if self.suspended == True:
-            if self._t_suspended + self._suspend_ticks > frame_ticks:
-                # pending launch
+            if self._suspended_at_t + self._suspend_for > frame_ticks:                
                 timeline_logger.log(f"em{self.id}: suspended")
                 return
             else:
-                timeline_logger.log(f"em{self.id}: sus?:{self.suspended} at:{self._t_suspended} sus_ticks:{self._suspend_ticks}")
+                timeline_logger.log(f"em{self.id}: sus?:{self.suspended} at:{self._suspended_at_t} sus_ticks:{self._suspend_for}")
                 self.suspended = False
-                self.redraw()                
+                self.redraw()
 
         # movement is based on the time since leaving the last reference position
         elapsed_time = frame_ticks - self._t0
         distance = elapsed_time * self._speed / 1000.0
 
         # update screen position (one of either the x or y will always be 0)
-        self.rect.centerx = x(self._checkpoint) + self.direction.x * distance
-        self.rect.centery = y(self._checkpoint) + self.direction.y * distance
+        self.rect.centerx = round(x(self._checkpoint) + self.direction.x * distance)
+        self.rect.centery = round(y(self._checkpoint) + self.direction.y * distance)
         timeline_logger.log(f"em{self.id}: t0:{self._t0} chk:{self._checkpoint} moveto: {self.rect.center}", frame_ticks)
         
         # has location changed?
