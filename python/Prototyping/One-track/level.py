@@ -7,6 +7,7 @@ from beatbug import BeatBug
 from emitter import Emitter
 from mouse import MouseMode
 from info_text import InfoText
+from info_text import SpriteInfoText
 
 class Level:
 
@@ -17,10 +18,9 @@ class Level:
         self._assistants = pygame.sprite.Group()
         self._bugs = pygame.sprite.Group()
         self._emitters = pygame.sprite.Group()
+        self._sprite_infos = []
         self._initialise(data)
         self._paused = False
-
-        self.info = InfoText((100,100), "info!", "red", True, "white")
 
 
     def _initialise(self, data):
@@ -45,6 +45,10 @@ class Level:
             # to know where emitters are            
             self._emitters.update(frame_ticks, self._bugs, audio)
             self._bugs.update(frame_ticks, self._data, self._emitters, audio)
+            for sprite_info in list(self._sprite_infos):
+                if sprite_info.update(frame_ticks) == False:
+                    self._sprite_infos.remove(sprite_info)
+                
 
 
     def draw(self, surface):
@@ -54,7 +58,8 @@ class Level:
         self._assistants.draw(surface)
         self._emitters.draw(surface)
         self._bugs.draw(surface)
-        self.info.draw(surface)
+        for sprite_info_text in self._sprite_infos:
+            sprite_info_text.draw(surface)
 
 
     def pause(self):
@@ -83,17 +88,21 @@ class Level:
             pygame.draw.line(surface, "#75757575", (0, y*TILE_SIZE), (width_in_tiles * TILE_SIZE, y*TILE_SIZE))
 
 
-    def handle_click(self, frame_ticks, position, session, mouse):        
-
+    def handle_click_button1(self, frame_ticks, position, session, mouse):
         if mouse.mode == MouseMode.SELECTION:
             location = screen_to_grid(position)
             anchored_assistant = self.assistant_at(location)
             if anchored_assistant:
-                anchored_assistant.emitter.suspend(frame_ticks, 1000)
+                suspend_action = anchored_assistant.emitter.suspend(frame_ticks, 1000)
+                if suspend_action == SuspendAction.ENTERED:
+                    countdown_text = SpriteInfoText(anchored_assistant.emitter, 
+                                                    INFO_TEXT_OFFSET,
+                                                    None, "#333333", True, "#cccccc", True)
+                    self._sprite_infos.append(countdown_text)
             return
 
         if session.selected_assistant == None:
-            return        
+            return
 
         if self.is_assistant_placeable(session.selected_assistant):
             location = screen_to_grid(position)
@@ -102,9 +111,14 @@ class Level:
             assistant.anchored_location = location
             # create an emitter
             t0 = session.get_synchronised_t0(frame_ticks)
-            emitter = Emitter(frame_ticks, t0, assistant.emitter_type, location, assistant.colour)            
+            emitter = Emitter(frame_ticks, t0, assistant.emitter_type, location, assistant.colour)
             emitter.assistant = assistant
             assistant.emitter = emitter
+            # emitter will initially be suspended to synch with track timing
+            # display the suspend time
+            countdown_text = SpriteInfoText(emitter, INFO_TEXT_OFFSET,
+                                            None, "#333333", True, "#cccccc", True)
+            self._sprite_infos.append(countdown_text)                                            
             timeline_logger.log(f"level: create em{emitter.id} at:{emitter.rect.center} t0:{t0}", frame_ticks)
 
             # add a new assistant to the level
@@ -113,6 +127,37 @@ class Level:
             mouse.mode = MouseMode.SELECTION
 
             session.selected_assistant_groupsingle = None
+
+
+    def handle_click_button2(self, frame_ticks, position, session, mouse):
+        # if in selection mode, second mouse button removes a placed assistant
+        # and moves that assistant to placement mode
+        if mouse.mode == MouseMode.SELECTION:
+            location = screen_to_grid(position)
+            anchored_assistant = self.assistant_at(location)
+            if anchored_assistant:
+                # detach the assistant
+                # first, remove any associated info text            
+                for sprite_info in list(self._sprite_infos):
+                    if sprite_info.has_sprite(anchored_assistant.emitter):
+                        self._sprite_infos.remove(sprite_info)
+                self._emitters.remove(anchored_assistant.emitter)
+                self._assistants.remove(anchored_assistant)
+                session.selected_assistant = anchored_assistant
+                session.selected_assistant.anchored_location = None
+
+                mouse.mode = MouseMode.PLACEMENT
+
+            return
+
+        if mouse.mode == MouseMode.PLACEMENT:
+            if session.selected_assistant is not None:
+                session.selected_assistant.rotate()
+                if self.is_assistant_placeable(session.selected_assistant) == False:
+                    session.selected_assistant.redraw(session.selected_assistant.shadow_colour)
+                else:
+                    session.selected_assistant.redraw()
+                
 
 
     def assistant_at(self, location):
@@ -139,8 +184,10 @@ class Level:
         for location in locations:
             if x(location) < 0 or y(location) < 0:
                 continue
+            if x(location) >= SCREEN_WIDTH_TILES or y(location) >= SCREEN_HEIGHT_TILES:
+                continue
             if self.assistant_at(location) is not None:
-                return False            
+                return False
             if self.track_tile_at(location):
                 track_tile_count += 1
 
@@ -150,7 +197,7 @@ class Level:
         return False
 
 
-    def check_for_mouseover(self, location):        
+    def check_for_highlight(self, location):        
         highlighted_assistant = self.assistant_at(location)
         for assistant in self._assistants:
             if assistant == highlighted_assistant:
@@ -159,7 +206,7 @@ class Level:
                 assistant.highlight = False
             assistant.redraw()
 
-        return highlighted_assistant is None
+        return highlighted_assistant is not None
 
 
     def spawn_beatbug(self, due_ticks, frame_ticks):

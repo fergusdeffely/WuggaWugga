@@ -16,6 +16,7 @@ class Assistant(pygame.sprite.Sprite):
         self.shadow_colour = shadow_colour
         # anchored_location will only be set after the assistant is anchored
         self.anchored_location = None
+        self.highlight = False
 
         # build the shape
         # node format:
@@ -39,6 +40,12 @@ class Assistant(pygame.sprite.Sprite):
                           (0,-1):(0,1,0,0),
                           (-1,0):(0,0,1,0)}
 
+        self.build_surface()                
+        self.update(position)
+        self.redraw(self.shadow_colour)
+
+
+    def build_surface(self):
         extents = self.get_node_extents()
 
         width = (extents["max_plus_x"] - extents["max_minus_x"]) * TILE_SIZE + TILE_SIZE
@@ -58,13 +65,37 @@ class Assistant(pygame.sprite.Sprite):
         In the example above the root offset would be (2,2)
         '''
         self.rootnode_offset = (0 - extents["max_minus_x"], 0 - extents["max_minus_y"])
-
         self.image = pygame.Surface((width, height), pygame.SRCALPHA, 32)
         self.image = self.image.convert_alpha()
         self.rect = self.image.get_rect()
-        self.highlight = False
-        self.update(position)
-        self.redraw(self.shadow_colour)
+
+
+    def rotate(self):
+        # remember the current root position for later
+        root_topleft = self.get_root_topleft()
+
+        # rotation is clockwise
+        # rotation works by exchanging x and y coords and then inverting the new y
+        rotated_nodes = {}
+        for node, exits in self.nodes.items():
+            rotated_node = (node[1], 0 - node[0])
+            rotated_exits = (exits[2], exits[3], exits[1], exits[0])
+            rotated_nodes[rotated_node] = rotated_exits
+        self.nodes = rotated_nodes
+        print(f"assistant.rotate - nodes:{self.nodes}")
+
+        self.build_surface()
+        print(f"assistant.rotate - updating: topleft{root_topleft}")
+        self.update(root_topleft)
+
+        
+    def update(self, topleft):
+        self.rect.x = x(topleft) - x(self.rootnode_offset) * TILE_SIZE
+        self.rect.y = y(topleft) - y(self.rootnode_offset) * TILE_SIZE
+
+
+    def get_root_topleft(self):
+        return grid_to_screen(self.get_root_location())
 
 
     def get_root_location(self):
@@ -128,14 +159,9 @@ class Assistant(pygame.sprite.Sprite):
             
         return (0,0,0,0)
 
-        
-    def update(self, position):
-        self.rect.x = x(position) - x(self.rootnode_offset) * TILE_SIZE
-        self.rect.y = y(position) - y(self.rootnode_offset) * TILE_SIZE
-
 
     def redraw(self, colour=None):
-        if colour == None: colour = self.colour        
+        if colour == None: colour = self.colour
         for node in self.nodes.keys():
             rect = pygame.Rect((x(node) + x(self.rootnode_offset)) * TILE_SIZE,
                                (y(node) + y(self.rootnode_offset)) * TILE_SIZE,
@@ -143,7 +169,7 @@ class Assistant(pygame.sprite.Sprite):
             pygame.draw.rect(self.image, colour, rect, border_radius=3)
             if self.highlight:
                 pygame.draw.rect(self.image, "white", rect, 3, border_radius=3)
-                                                                                                                                      
+                                                  
 
     def __repr__(self):
         repr = "Assistant(type={}\n    emitter_type={}\n".format(self.type, self.emitter_type)

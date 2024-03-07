@@ -6,25 +6,21 @@ Defects:
 ------
 
 **Occasionally, pausing causes beatbug jumping at corners
-  Fix in place - last seen 0 days ago
+  Fix in place - last seen 1 days ago
   
 
 
 Features and improvements:
 -------------------------
 
-Suspend assistant:
- - show suspended timer
- - highlight should surround shape rather than segments 
-*- add support for info text 
-*- highlight assistant on mouseover
-*- show suspended indicator
-*- each left click suspends an additional second
+Improve Assistants:
+ - gorilla test rotating, detaching, replacing, suspending, pausing, etc
+ - highlighting assistant should surround shape rather than nodes
+ - enforce placement rules for more complex shapes
+*- allow rotating 
+*- remove assistant - right-click returns assistant to placement
+*- cancel selected assistant - escape key
 
-Remove assistant:
- - right-click returns assistant to palette
- 
-Investigate drawing of mouse outside of GroupSingle
 
 Update level data definition:
  - data format
@@ -32,19 +28,9 @@ Update level data definition:
  - use exit system (like emitters/assistants)
  - investigate the ease of implementing a level editor
 
-Add cross track support:
- - enforce placement rules for more complex shapes
- - allow rotating
-*- change mouse cursor on select
-*- show indicator of valid/invalid placement
-*- add support for shape segments
-
-Moving emitters:
+Moving emitters 2:
  - test more advanced shapes
  - test crossing bugtrack in more than one place
-*- basic movement
-*- check for bounds and change direction
-*- fix collisions between emitters and beatbugs
  
 Level start countdown:
  - 3 - 2 - 1 - disco
@@ -52,6 +38,8 @@ Level start countdown:
 Enhance drawing of shadow for selected assistant.
 Draw allowed placements underneath bugs, but over
 tracks.
+
+Investigate drawing of mouse outside of GroupSingle
 
 Implement a tile map:
 
@@ -75,6 +63,23 @@ Investigate Midi:
 
 Complete:
 --------
+
+* Add cross track support:
+* - change mouse cursor on select
+* - show indicator of valid/invalid placement
+* - add support for shape segments
+
+* Moving emitters:
+* - basic movement
+* - check for bounds and change direction
+* - fix collisions between emitters and beatbugs
+
+* Suspend assistant:
+* - show suspended timer
+* - add support for info text 
+* - highlight assistant on mouseover
+* - show suspended indicator
+* - each left click suspends an additional second
 
 * Change emitter colour when playing
 

@@ -92,11 +92,15 @@ class UI():
 
     def handle_gui_event(self, event, session):
         event.ui_element.on_clicked(session, self)
+        
+
+    def handle_keydown(self, key, session):
+        if key == pygame.K_ESCAPE:
+            session.selected_assistant = None
 
 
     def update(self, frame_ticks, time_delta, session):
         self.level.update(frame_ticks, self._out.audio)
-
         self.manager.update(time_delta / 1000.0)
         self.mouse.update(session, self.level)
 

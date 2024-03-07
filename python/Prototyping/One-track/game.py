@@ -56,7 +56,14 @@ class Game():
                     log(3, f"Event: MouseButtonUp : {event.button} at {screen_to_grid(event.pos)}")
                     if event.button == 1:
                         if self.session.gamestate == GameState.RUNNING:
-                            self.ui.level.handle_click(frame_ticks, event.pos, self.session, self.ui.mouse.sprite)
+                            self.ui.level.handle_click_button1(frame_ticks, event.pos, self.session, self.ui.mouse.sprite)
+                    if event.button == 3:
+                        if self.session.gamestate == GameState.RUNNING:
+                            self.ui.level.handle_click_button2(frame_ticks, event.pos, self.session, self.ui.mouse.sprite)
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        self.ui.handle_keydown(event.key, self.session)
 
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     log(3, f"Event{event.type}: pygame_gui.UI_BUTTON_PRESSED : {event}")

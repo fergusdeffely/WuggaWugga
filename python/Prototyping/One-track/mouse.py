@@ -21,13 +21,7 @@ class Mouse(pygame.sprite.Sprite):
 
       
     def update(self, session, level):
-        position = pygame.mouse.get_pos()
-        if position == self.position:
-            # nothing to do if position hasn't changed
-            return
-        self.position = position
-
-        topleft = get_tile_topleft(position)
+        topleft = get_tile_topleft(pygame.mouse.get_pos())
 
         # different grid square?
         if self.rect.topleft != topleft:
@@ -48,12 +42,12 @@ class Mouse(pygame.sprite.Sprite):
                 session.selected_assistant.redraw(colour)
             
             location = screen_to_grid(self.rect.center)
-            show_cursor = level.check_for_mouseover(location)
-            self.draw_cursor(show_cursor)
+            highlight = level.check_for_highlight(location)
+            self.draw_cursor(highlight)
 
 
-    def draw_cursor(self, show_cursor=True):
+    def draw_cursor(self, highlight=False):
         self.image.fill("black")
         frame = pygame.Rect((0,0), (TILE_SIZE, TILE_SIZE))
-        if show_cursor:
+        if highlight == False:
             pygame.draw.rect(self.image, "green", frame, 3, border_radius=3)

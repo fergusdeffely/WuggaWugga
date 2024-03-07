@@ -8,7 +8,7 @@ from audio import Audio
 
 # Pygame setup
 pygame.init()
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+screen = pygame.display.set_mode((SCREEN_WIDTH_PIXELS, SCREEN_HEIGHT_PIXELS))
 clock = pygame.time.Clock()
 audio = Audio()
 

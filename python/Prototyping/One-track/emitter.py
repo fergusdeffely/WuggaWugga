@@ -59,19 +59,21 @@ class Emitter(pygame.sprite.Sprite):
         # suspend_ticks needs to be a multiple of 500 for this trick of 
         # adjusting t0 forward to work
         self._t0 += suspend_ticks
+        suspend_action = None
 
         if self.suspended:
+            suspend_action = SuspendAction.EXTENDED
             self._suspend_for += suspend_ticks
             timeline_logger.log(f"em{self.id}: add suspend:{suspend_ticks}: total sus:{self._suspend_for} new t0:{self._t0}", frame_ticks)
-            print(f"em{self.id}: add suspend:{suspend_ticks}: total sus:{self._suspend_for} new t0:{self._t0}", frame_ticks)
         else:
             self.suspended = True
+            suspend_action = SuspendAction.ENTERED            
             self._suspended_at_t = frame_ticks
             self._suspend_for = suspend_ticks
             timeline_logger.log(f"em{self.id}: suspend: at:{self._suspended_at_t} for:{self._suspend_for}:  new t0:{self._t0}", frame_ticks)
-            print(f"em{self.id}: suspend: at:{self._suspended_at_t} for:{self._suspend_for}: new t0:{self._t0}", frame_ticks)
         
         self.redraw()
+        return suspend_action
 
 
     def adjust_for_pause(self, gap):
@@ -80,8 +82,16 @@ class Emitter(pygame.sprite.Sprite):
             self._suspended_at_t += gap
 
 
-    def update(self, frame_ticks, beatbugs, audio):
-        
+    def get_info_text(self, frame_ticks):
+        if self.suspended:
+            ticks_remaining = self._suspended_at_t + self._suspend_for - frame_ticks
+            info_text = f"{ticks_remaining / 1000:.1f}"
+            return f"{ticks_remaining / 1000:.1f}"
+        else:
+            return None
+
+
+    def update(self, frame_ticks, beatbugs, audio):        
         if self.suspended == True:
             if self._suspended_at_t + self._suspend_for > frame_ticks:                
                 timeline_logger.log(f"em{self.id}: suspended")
