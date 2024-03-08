@@ -1,0 +1,80 @@
+{
+    "defaults":
+    {
+        "colours":
+        {
+            "normal_bg":"#45494e",
+            "hovered_bg":"#35393e",
+            "disabled_bg":"#25292e",
+            "selected_bg":"#193754",
+            "dark_bg":"#15191e",
+            "normal_text":"#c5cbd8",
+            "hovered_text":"#FFFFFF",
+            "selected_text":"#FFFFFF",
+            "disabled_text":"#6d736f",
+            "link_text": "#0000EE",
+            "link_hover": "#2020FF",
+            "link_selected": "#551A8B",
+            "text_shadow": "#777777",
+            "normal_border": "#DDDDDD",
+            "hovered_border": "#B0B0B0",
+            "disabled_border": "#808080",
+            "selected_border": "#8080B0",
+            "active_border": "#8080B0",
+            "filled_bar":"#f4251b",
+            "unfilled_bar":"#CCCCCC"
+        }
+    },
+    "#red":
+    {
+        "colours":
+        {
+            "normal_bg":"#ff0000",
+            "hovered_bg":"#65393e",
+            "disabled_bg":"#45292e",
+            "selected_bg":"#403754",
+            "dark_bg":"#30191e",
+            "normal_text":"#c5cbd8",
+            "hovered_text":"#FFFFFF",
+            "selected_text":"#FFFFFF",
+            "disabled_text":"#6d736f",
+            "link_text": "#0000EE",
+            "link_hover": "#2020FF",
+            "link_selected": "#551A8B",
+            "text_shadow": "#977777",
+            "normal_border": "#ffDDDD",
+            "hovered_border": "#eeB0B0",
+            "disabled_border": "#b08080",
+            "selected_border": "#b080B0",
+            "active_border": "#b080B0",
+            "filled_bar":"#f4221b",
+            "unfilled_bar":"#ffaaaa"
+        }
+    },
+    "#yellow":
+    {
+        "colours":
+        {
+            "normal_bg":"#ffff00",
+            "hovered_bg":"#65793e",
+            "disabled_bg":"#45592e",
+            "selected_bg":"#406754",
+            "dark_bg":"#30391e",
+            "normal_text":"#c5cbd8",
+            "hovered_text":"#FFFFFF",
+            "selected_text":"#FFFFFF",
+            "disabled_text":"#6d736f",
+            "link_text": "#0000EE",
+            "link_hover": "#2020FF",
+            "link_selected": "#551A8B",
+            "text_shadow": "#979757",
+            "normal_border": "#ffffaa",
+            "hovered_border": "#eeeeB0",
+            "disabled_border": "#b0b080",
+            "selected_border": "#e0e0B0",
+            "active_border": "#f0f080",
+            "filled_bar":"#f4621b",
+            "unfilled_bar":"#ffffaa"
+        }
+    }         
+}

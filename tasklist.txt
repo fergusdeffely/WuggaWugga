@@ -21,6 +21,8 @@ Improve Assistants:
 *- remove assistant - right-click returns assistant to placement
 *- cancel selected assistant - escape key
 
+Build some tunes:
+Build a level!!
 
 Update level data definition:
  - data format
@@ -53,7 +55,7 @@ Add new assistant types:
 
 Make/find some graphics:
 
-Build some tunes:
+
 
 Investigate Midi:
  - Could a level palette be built from a midi sequence?
