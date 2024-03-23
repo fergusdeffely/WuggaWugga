@@ -20,7 +20,7 @@ class Mouse(pygame.sprite.Sprite):
         self.draw_cursor()
 
       
-    def update(self, session, level):
+    def update(self, level):
         topleft = get_tile_topleft(pygame.mouse.get_pos())
 
         # different grid square?
@@ -29,20 +29,20 @@ class Mouse(pygame.sprite.Sprite):
             self.rect.y = y(topleft)
 
             # is there a currently selected assistant?
-            if session.selected_assistant is not None:
-                session.selected_assistant.update(self.rect.topleft)
+            if level.selected_assistant is not None:
+                # update it with the new mouse position
+                level.selected_assistant.update(self.rect.topleft, level.grid_offset)
 
-                colour = session.selected_assistant.shadow_colour
+                # work out the colour depending on whether it's placeable
+                colour = level.selected_assistant.shadow_colour                
+                if level.is_assistant_placeable(level.selected_assistant):
+                    colour = level.selected_assistant.colour
 
-                # change the assistant's colour if it's placeable at this location
-                location = screen_to_grid(self.rect.topleft)
-                if level.is_assistant_placeable(session.selected_assistant):
-                    colour = session.selected_assistant.colour
-
-                session.selected_assistant.redraw(colour)
+                print(f"mouse: redraw => colour:{colour}")
+                level.selected_assistant.redraw(colour)
             
-            location = screen_to_grid(self.rect.center)
-            highlight = level.check_for_highlight(location)
+            # check to see if an anchored assistant is being highlighted
+            highlight = level.check_for_highlight(screen_to_grid(self.rect.topleft, level.grid_offset))
             self.draw_cursor(highlight)
 
 
@@ -51,3 +51,6 @@ class Mouse(pygame.sprite.Sprite):
         frame = pygame.Rect((0,0), (TILE_SIZE, TILE_SIZE))
         if highlight == False:
             pygame.draw.rect(self.image, "green", frame, 3, border_radius=3)
+
+    def draw(self, surface):
+        surface.blit(self.image, self.rect)

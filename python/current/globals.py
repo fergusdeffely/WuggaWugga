@@ -3,16 +3,15 @@ import pygame_gui
 from enums import *
 from level_data import level_map
 
-LOGGING_LEVEL = 1
+LOGGING_LEVEL = 4
 LOG_FRAME_DELTAS = False
 LOG_BUG_MOVEMENT = True
 
 NULL_LOCATION = (None, None)
 TILE_SIZE = 32
 
-
-SCREEN_WIDTH_TILES = len(level_map[0])
-SCREEN_HEIGHT_TILES = len(level_map)
+SCREEN_WIDTH_TILES = 32
+SCREEN_HEIGHT_TILES = 16
 SCREEN_WIDTH_PIXELS = SCREEN_WIDTH_TILES * TILE_SIZE
 SCREEN_HEIGHT_PIXELS = SCREEN_HEIGHT_TILES * TILE_SIZE
 SCREEN_SIZE = (SCREEN_WIDTH_PIXELS, SCREEN_HEIGHT_PIXELS)
@@ -25,17 +24,18 @@ EMITTER_SPEED = TILE_SIZE
 H_CENTER_BEATBUG = (TILE_SIZE - BEATBUG_SIZE) / 2
 V_CENTER_BEATBUG = (TILE_SIZE - BEATBUG_SIZE) / 2
 
+VECTOR_NORTH = pygame.Vector2(0,-1)
+VECTOR_SOUTH = pygame.Vector2(0, 1)
+VECTOR_EAST  = pygame.Vector2(1, 0)
+VECTOR_WEST  = pygame.Vector2(-1,0)
+
 FONT_SIZE = 16
 INFO_TEXT_OFFSET = pygame.Vector2(0, 0 - TILE_SIZE * 3 / 4)
 
-SPAWN_TIMER_DURATION = 2000
+BEATBUG_SPAWN_TIMER_DURATION = 2000
 
 BASE_WUGGA_USEREVENT = pygame_gui.UI_TEXT_EFFECT_FINISHED + 1
-
 CHANNEL_READY_EVENT = BASE_WUGGA_USEREVENT + 0
-
-ASSISTANT_ROSTER = [("red", AssistantType.KICK_EMITTER),
-                    ("yellow", AssistantType.BASS_EMITTER)]
 
 ASSISTANT_BUTTON_SPACER = TILE_SIZE / 2
 
@@ -61,25 +61,22 @@ def E(exit):
 def W(exit):
     return exit[3]
 
-def grid_to_screen(location):
-    return (location[0] * TILE_SIZE, location[1] * TILE_SIZE)
-  
-def screen_to_grid(position):
-    return (int(position[0] / TILE_SIZE), int(position[1] / TILE_SIZE))
+def grid_to_screen(location, level_offset):
+    return ((location.x + level_offset.x) * TILE_SIZE, 
+            (location.y + level_offset.y) * TILE_SIZE)
+
+def screen_to_grid(position, level_offset):
+    return pygame.Vector2(int(position[0] / TILE_SIZE) - level_offset.x, 
+                          int(position[1] / TILE_SIZE) - level_offset.y)
 
 def get_tile_topleft(position):
-    left = x(position) - x(position) % TILE_SIZE
-    top = y(position) - y(position) % TILE_SIZE
+    left = position[0] - position[0] % TILE_SIZE
+    top = position[1] - position[1] % TILE_SIZE
     return (left, top)
 
-def get_tile_rect(location):
-    topleft = grid_to_screen(location)
+def get_tile_rect(location, level_offset):
+    topleft = grid_to_screen(location, level_offset)
     return pygame.Rect(x(topleft), y(topleft), TILE_SIZE, TILE_SIZE)
-  
-def get_grid_cell_data(location):
-    row = level_map[location[1]]
-    cell = row[location[0]]
-    return cell
   
 def get_direction_vector(bearing):
     if bearing == 'N':
@@ -99,3 +96,6 @@ def add_tuples(tup1, tup2):
 def log(level, message):
     if level <= LOGGING_LEVEL:
         print(message)
+
+def get_html_colour(colour):
+    return f"#{colour.r:02x}{colour.g:02x}{colour.b:02x}"

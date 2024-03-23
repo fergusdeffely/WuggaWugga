@@ -25,7 +25,7 @@
             "unfilled_bar":"#CCCCCC"
         }
     },
-    "#red":
+    "#ff0000":
     {
         "colours":
         {
@@ -51,7 +51,7 @@
             "unfilled_bar":"#ffaaaa"
         }
     },
-    "#yellow":
+    "#ffff00":
     {
         "colours":
         {

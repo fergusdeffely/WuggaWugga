@@ -5,34 +5,26 @@ In progress:
 Defects:
 ------
 
-**Occasionally, pausing causes beatbug jumping at corners
-  Fix in place - last seen 1 days ago
-  
 
 
 Features and improvements:
 -------------------------
 
-Improve Assistants:
- - gorilla test rotating, detaching, replacing, suspending, pausing, etc
+Investigate the ease of implementing a level editor
+
+Improve Assistants 2:
  - highlighting assistant should surround shape rather than nodes
  - enforce placement rules for more complex shapes
-*- allow rotating 
-*- remove assistant - right-click returns assistant to placement
-*- cancel selected assistant - escape key
-
-Build some tunes:
-Build a level!!
-
-Update level data definition:
- - data format
- - port emitter movement logic to beatbug
- - use exit system (like emitters/assistants)
- - investigate the ease of implementing a level editor
 
 Moving emitters 2:
  - test more advanced shapes
  - test crossing bugtrack in more than one place
+ 
+Test fast beatbugs.
+ - handle mid-movement cornering
+
+Build some tunes:
+Build a level!!
  
 Level start countdown:
  - 3 - 2 - 1 - disco
@@ -40,8 +32,6 @@ Level start countdown:
 Enhance drawing of shadow for selected assistant.
 Draw allowed placements underneath bugs, but over
 tracks.
-
-Investigate drawing of mouse outside of GroupSingle
 
 Implement a tile map:
 
@@ -55,16 +45,40 @@ Add new assistant types:
 
 Make/find some graphics:
 
-
-
 Investigate Midi:
  - Could a level palette be built from a midi sequence?
+ 
+Improve Stability:
+ - Add exception handling
+ 
+Optimizations:
+ - When an assistant has been anchored, store the locations
+   of the anchored nodes - would avoid having to look them 
+   up by root + offset
 
 ----------------------------------------
 
 
 Complete:
 --------
+
+* Occasionally, pausing causes beatbug jumping at corners
+* - Fix in place many days ago - last seen many days ago
+* - Closing this for now as a lot of refactoring has happened
+    around movement logic. Will reopen if behaviour reoccurs.
+
+* Update level data definition:
+* - data format
+* - port emitter movement logic to beatbug
+* - use exit system (like emitters/assistants)
+
+* Improve Assistants 1:
+* - gorilla test rotating, detaching, replacing, suspending, pausing, etc
+* - allow rotating 
+* - remove assistant - right-click returns assistant to placement
+* - cancel selected assistant - escape key
+
+* Investigate drawing of mouse outside of GroupSingle
 
 * Add cross track support:
 * - change mouse cursor on select

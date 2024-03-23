@@ -3,18 +3,15 @@ from globals import *
  
 class Tile(pygame.sprite.Sprite):
 
-    def __init__(self, location):
+    def __init__(self, location, position):
         super().__init__()
 
+        self.location = location
+        self.position = position
         self.image = pygame.Surface((TILE_SIZE, TILE_SIZE))    
-        self.image.fill("grey")
-        position = grid_to_screen(location)
+        self.image.fill("grey")        
         self.rect = pygame.Rect(position[0], position[1], TILE_SIZE, TILE_SIZE)
     
-    
-    def update(self):
-        pass
-    
-
-    def get_centre(self):
-        return self.rect.center
+        
+    def draw(self, surface):
+        surface.blit(self.image, self.rect)
