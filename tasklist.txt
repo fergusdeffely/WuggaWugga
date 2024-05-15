@@ -10,7 +10,7 @@ Defects:
 Features and improvements:
 -------------------------
 
-Investigate the ease of implementing a level editor
+Investigate possibility of implementing a level editor
 
 Improve Assistants 2:
  - highlighting assistant should surround shape rather than nodes
