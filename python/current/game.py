@@ -23,7 +23,7 @@ class Game():
         pygame.init()
         self.clock = pygame.time.Clock()        
 
-        screen = pygame.display.set_mode(SCREEN_SIZE)
+        screen = pygame.display.set_mode(SCREEN_SIZE, flags=pygame.NOFRAME)
         self.out = Output(screen, Audio())
 
         t_start = pygame.time.get_ticks()

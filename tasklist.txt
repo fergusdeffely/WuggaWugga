@@ -10,7 +10,11 @@ Defects:
 Features and improvements:
 -------------------------
 
+
 Investigate possibility of implementing a level editor
+
+Improve emitters:
+ - level config to allow for instrument and pitch
 
 Improve Assistants 2:
  - highlighting assistant should surround shape rather than nodes
@@ -24,10 +28,15 @@ Test fast beatbugs.
  - handle mid-movement cornering
 
 Build some tunes:
+ - add composer framework for tunebuilding with pygame
+ - use cycle based timing
+
 Build a level!!
  
 Level start countdown:
  - 3 - 2 - 1 - disco
+
+Improve theming - adding new colours should be more straightforward
 
 Enhance drawing of shadow for selected assistant.
 Draw allowed placements underneath bugs, but over
@@ -56,11 +65,19 @@ Optimizations:
    of the anchored nodes - would avoid having to look them 
    up by root + offset
 
+Add a landing page and menu:
+
+Build some sprites
+
+
+
 ----------------------------------------
 
 
 Complete:
 --------
+
+* Mouse - don't show grid highlight when off the grid
 
 * Occasionally, pausing causes beatbug jumping at corners
 * - Fix in place many days ago - last seen many days ago

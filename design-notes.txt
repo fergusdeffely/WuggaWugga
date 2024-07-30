@@ -1,0 +1,11 @@
+1x3 assistants:
+  * have a round trip distance of 4
+  * two positions possible - end placement or middle placement
+  * if speed == beatbug speed then:
+        if end placement:
+            there are two emitter phasings...
+            1. contact every second beatbug
+            2. no contact
+        elif middle placement
+            there is only one phasing...
+            1. contact ever beatbug

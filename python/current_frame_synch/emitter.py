@@ -7,7 +7,7 @@ class Emitter(pygame.sprite.Sprite):
 
     _current_id = 0
 
-    def __init__(self, frame_ticks, t0, emit_sound, location, position, speed):
+    def __init__(self, synch_cycle, emit_sound, location, position, speed):
         super().__init__()
 
         self.id = Emitter._current_id
@@ -22,13 +22,14 @@ class Emitter(pygame.sprite.Sprite):
         self.colour_suspended = "#888888"
         self.rect = pygame.Rect(position, (TILE_SIZE, TILE_SIZE))
 
-        self._t0 = t0
+        self._x_delta = 0
+        self._y_delta = 0
+
         self._speed = speed
-        self._checkpoint = self.rect.center
-        # suspend until we pass t0
+
+        # suspend until we synch
         self.suspended = True
-        self._suspended_at_t = frame_ticks
-        self._suspend_for = t0 - frame_ticks
+        self._suspend_until = synch_cycle        
         self.channel_id = None
 
         self.redraw()
@@ -50,48 +51,43 @@ class Emitter(pygame.sprite.Sprite):
         self.redraw()
 
 
-    def suspend(self, frame_ticks, suspend_ticks):
-        # suspend_ticks needs to be a multiple of 500 for this trick of 
-        # adjusting t0 forward to work
-        self._t0 += suspend_ticks
+    def suspend(self, cycle, num_cycles):
         suspend_action = None
 
         if self.suspended:
+            self._suspend_until += num_cycles
             suspend_action = SuspendAction.EXTENDED
-            self._suspend_for += suspend_ticks
-            timeline_logger.log(f"em{self.id}: add suspend:{suspend_ticks}: total sus:{self._suspend_for} new t0:{self._t0}", frame_ticks)
+            timeline_logger.log(f"em{self.id}: suspend: extend by: {num_cycles} until:{self._suspend_until}", cycle)
         else:
+            self._suspend_until = cycle + num_cycles
             self.suspended = True
-            suspend_action = SuspendAction.ENTERED            
-            self._suspended_at_t = frame_ticks
-            self._suspend_for = suspend_ticks
-            timeline_logger.log(f"em{self.id}: suspend: at:{self._suspended_at_t} for:{self._suspend_for}:  new t0:{self._t0}", frame_ticks)
+            suspend_action = SuspendAction.SUSPENDED
+            timeline_logger.log(f"em{self.id}: suspend: until:{self._suspend_until}", cycle)
         
         self.redraw()
         return suspend_action
 
 
-    def adjust_for_pause(self, gap):
-        self._t0 += gap
+    def adjust_for_pause(self, pause_cycles):
         if self.suspended:
-            self._suspended_at_t += gap
+            self._suspend_until += pause_cycles
 
 
-    def get_info_text(self, frame_ticks):
+    def get_info_text(self, cycle):
         if self.suspended:
-            ticks_remaining = self._suspended_at_t + self._suspend_for - frame_ticks
-            return f"{ticks_remaining / 1000:.1f}"
+            cycles_remaining = self._suspend_until - cycle
+            return f"{cycles_remaining / FRAMES_PER_SECOND:.1f}"
         else:
             return None
 
 
-    def update(self, frame_ticks, tiles, level_offset, beatbugs, audio):     
+    def update(self, cycle, tiles, level_offset, beatbugs, audio):     
         if self.suspended == True:
-            if self._suspended_at_t + self._suspend_for > frame_ticks:                
-                timeline_logger.log(f"em{self.id}: suspended")
+            if cycle < self._suspend_until :
+                timeline_logger.log(f"em{self.id}: suspended", cycle)
                 return
             else:
-                timeline_logger.log(f"em{self.id}: unsuspended: at:{self._suspended_at_t} for:{self._suspend_for}")
+                timeline_logger.log(f"em{self.id}: unsuspended", cycle)
                 self.suspended = False
                 self.redraw()
 
@@ -101,17 +97,31 @@ class Emitter(pygame.sprite.Sprite):
             # 1x1 assistant - no movement
             return
 
-        # movement is based on the time since leaving the last reference position
-        elapsed_time = frame_ticks - self._t0
-        distance = elapsed_time * self._speed / 1000.0
-
-        # update screen position (one of either the x or y will always be 0)
-        self.rect.centerx = round(self._checkpoint[0] + self.direction.x * distance)
-        self.rect.centery = round(self._checkpoint[1] + self.direction.y * distance)
-        timeline_logger.log(f"em{self.id}: t0:{self._t0} chk:{self._checkpoint} moveto: {self.rect.center}", frame_ticks)
+        # update screen position based on direction
+        # note 1: one of direction.x or direction.y will always be 0
+        # note 2: in the pygame.Rect type the center (x,y) is a tuple and is managed 
+        #         as an integer pair - this means rounding of fractions
         
-        # has location changed?
-        new_location = screen_to_grid(self.rect.center, level_offset)        
+        self._x_delta = self._x_delta + self.direction.x * 0.5
+        if(self._x_delta >= 1):
+            self._x_delta = self._x_delta - 1
+            self.rect.centerx = self.rect.centerx + 1
+        elif(self._x_delta <= -1):
+            self._x_delta = self._x_delta + 1
+            self.rect.centerx = self.rect.centerx - 1
+
+        self._y_delta = self._y_delta + self.direction.y * 0.5
+        if(self._y_delta >= 1):
+            self._y_delta = self._y_delta - 1
+            self.rect.centery = self.rect.centery + 1
+        elif(self._y_delta <= -1):
+            self._y_delta = self._y_delta + 1
+            self.rect.centery = self.rect.centery - 1
+
+        timeline_logger.log(f"em{self.id}: moveto: {self.rect.center}", cycle)
+        
+        # different tile?
+        new_location = screen_to_grid(self.rect.center, level_offset)
         if self.location != new_location:
             self.location = new_location
             # have we happened upon a bug?
@@ -125,12 +135,8 @@ class Emitter(pygame.sprite.Sprite):
         new_direction = self.get_direction(tile_rect, level_offset, exit_info)
 
         if new_direction != self.direction:
-            # direction is changing, so update the checkpoint and t0
-            #  - ensure new t0 keeps a granularity of 500ms with existing
-            rounded_frame_ticks = frame_ticks - frame_ticks % 500
-            self._t0 = rounded_frame_ticks + self._t0 % 500
-            timeline_logger.log(f"em{self.id}: from:{self.direction} to:{new_direction} chk:{tile_rect.center}, t0:{self._t0}", frame_ticks)
-            self._checkpoint = tile_rect.center
+            # direction is changing
+            timeline_logger.log(f"em{self.id}: from:{self.direction} to:{new_direction}", cycle)
             self.direction = new_direction
 
 
@@ -148,22 +154,26 @@ class Emitter(pygame.sprite.Sprite):
         # -x1 > -x2
 
         if self.rect.centerx * self.direction.x >= x(tile_rect.center) * self.direction.x:
-            # try left, try right, then try reverse
+            
             if self.direction.x == 1 and E(exit_info) == False:
+                # try left, try right, then try reverse
                 if N(exit_info): return VECTOR_NORTH
                 elif S(exit_info): return VECTOR_SOUTH
                 elif W(exit_info): return VECTOR_WEST
             if self.direction.x == -1 and W(exit_info) == 0:
+                # try left, try right, then try reverse
                 if S(exit_info): return VECTOR_SOUTH
                 elif N(exit_info): return VECTOR_NORTH
                 elif E(exit_info): return VECTOR_EAST
 
         if self.rect.centery * self.direction.y >= y(tile_rect.center) * self.direction.y:
             if self.direction.y == 1 and S(exit_info) == False:
+                # try left, try right, then try reverse
                 if E(exit_info): return VECTOR_EAST
                 elif W(exit_info): return VECTOR_WEST
                 elif N(exit_info): return VECTOR_NORTH
             if self.direction.y == -1 and N(exit_info) == 0:
+                # try left, try right, then try reverse
                 if W(exit_info): return VECTOR_WEST
                 elif E(exit_info): return VECTOR_EAST
                 elif S(exit_info): return VECTOR_SOUTH

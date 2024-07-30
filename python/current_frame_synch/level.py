@@ -21,7 +21,7 @@ class LevelRunState(Enum):
 
 class Level:
 
-    def __init__(self, level_filename, out, session, t0):
+    def __init__(self, level_filename, out, timeline):
         self.runstate = LevelRunState.INITIALISING
         self._out = out
         self.tiles = {}
@@ -37,8 +37,12 @@ class Level:
             self._initialise(d)
 
         # frequency, etc will eventually be specified in level json
-        spawn_beatbug_event = TimelineEvent(t0, self.spawn_beatbug, 0, BEATBUG_SPAWN_TIMER_DURATION)
-        session.timeline.add_event(spawn_beatbug_event)
+        spawn_beatbug_event = TimelineEvent(start_cycle=0, 
+                                            on_run=self.spawn_beatbug, 
+                                            loop=0, 
+                                            interval=BEATBUG_SPAWN_TIMER_CYCLES,
+                                            tag="Spawn Beatbug Event")
+        timeline.add_event(spawn_beatbug_event)
         
 
     def _initialise(self, data):
@@ -95,14 +99,14 @@ class Level:
             return AssistantType.PATH
 
 
-    def update(self, frame_ticks, audio):
+    def update(self, cycle, audio):
         if self.runstate == LevelRunState.RUNNING:
             # emitters need to know where bugs are and bugs need
             # to know where emitters are            
-            self.emitters.update(frame_ticks, self.tiles, self.grid_offset, self._bugs, audio)
-            self._bugs.update(frame_ticks, self, audio)
+            self.emitters.update(cycle, self.tiles, self.grid_offset, self._bugs, audio)
+            self._bugs.update(cycle, self, audio)
             for sprite_info in list(self._sprite_infos):
-                if sprite_info.update(frame_ticks) == False:
+                if sprite_info.update(cycle) == False:
                     self._sprite_infos.remove(sprite_info)
                 
 
@@ -122,13 +126,11 @@ class Level:
         self.runstate = LevelRunState.PAUSED
 
 
-    def unpause(self, gap, ticks):
+    def unpause(self, paused_cycles):
         self.runstate = LevelRunState.RUNNING
-        for bug in self._bugs:
-            bug.adjust_for_pause(gap, ticks)
 
         for emitter in self.emitters:
-            emitter.adjust_for_pause(gap)
+            emitter.adjust_for_pause(paused_cycles)
 
 
     def draw_grid(self, surface):
@@ -157,13 +159,13 @@ class Level:
         return (0,0,0,0)
 
 
-    def handle_click_button1(self, frame_ticks, event_pos, session, mouse):
+    def handle_click_button1(self, cycle, event_pos, timeline, mouse):
         if mouse.mode == MouseMode.SELECTION:
             location = screen_to_grid(event_pos, self.grid_offset)
             anchored_assistant = self.assistant_at(location)
             if anchored_assistant:
-                suspend_action = anchored_assistant.emitter.suspend(frame_ticks, 1000)
-                if suspend_action == SuspendAction.ENTERED:
+                suspend_action = anchored_assistant.emitter.suspend(cycle, FRAMES_PER_SECOND)
+                if suspend_action == SuspendAction.SUSPENDED:
                     countdown_text = SpriteInfoText(anchored_assistant.emitter, 
                                                     INFO_TEXT_OFFSET,
                                                     None, "#333333", True, "#cccccc", True)
@@ -180,8 +182,10 @@ class Level:
             assistant = copy.deepcopy(self.selected_assistant)
             assistant.anchored = True
             # create an emitter
-            t0 = session.get_synchronised_t0(frame_ticks)            
-            emitter = Emitter(frame_ticks, t0, 
+
+            synch_cycle = get_synchronised_cycle(cycle)
+
+            emitter = Emitter(synch_cycle,
                               assistant.emit_sound,
                               location,
                               get_tile_rect(location, self.grid_offset).topleft,
@@ -193,7 +197,7 @@ class Level:
             countdown_text = SpriteInfoText(emitter, INFO_TEXT_OFFSET,
                                             None, "#333333", True, "#cccccc", True)
             self._sprite_infos.append(countdown_text)                                            
-            timeline_logger.log(f"level: create em{emitter.id} at:{emitter.rect.center} t0:{t0}", frame_ticks)
+            timeline_logger.log(f"level: create em{emitter.id} at: {emitter.rect.center} synch at: {synch_cycle}", cycle)
 
             self._assistants.add(assistant)
             self.emitters.add(emitter)
@@ -202,7 +206,7 @@ class Level:
             self.selected_assistant = None
 
 
-    def handle_click_button2(self, frame_ticks, position, session, mouse):
+    def handle_click_button2(self, cycle, position, mouse):
         # if in selection mode, second mouse button removes a placed assistant
         # and moves that assistant to placement mode
         if mouse.mode == MouseMode.SELECTION:            
@@ -271,22 +275,28 @@ class Level:
         return False
 
 
-    def check_for_highlight(self, location):        
-        highlighted_assistant = self.assistant_at(location)
+    def on_new_mouse_location(self, location):
+        # return is True if the mouse outline should be hidden
+
+        assistant_at_location = self.assistant_at(location)
+        
         for assistant in self._assistants:
-            if assistant == highlighted_assistant:
+            if assistant == assistant_at_location:
                 assistant.highlight = True
             else:
                 assistant.highlight = False
             assistant.redraw()
 
-        return highlighted_assistant is not None
+        if(location.x < 0 or location.x >= self.width or
+           location.y < 0 or location.y >= self.height):
+           return True
+
+        return assistant_at_location is not None
 
 
-    def spawn_beatbug(self, due_ticks, frame_ticks):
+    def spawn_beatbug(self):
         if(self._spawner_location):
-            bug = BeatBug(self._spawner_location, self.grid_offset, due_ticks)
-            timeline_logger.log(f"bug{bug.id}:spawned, t0:{bug.t0}", frame_ticks)
+            bug = BeatBug(self._spawner_location, self.grid_offset)
             self._bugs.add(bug)
 
             

@@ -2,9 +2,12 @@ import pygame
 import pygame_gui
 from enums import *
 
-LOGGING_LEVEL = 4
+LOGGING_LEVEL = 3
 LOG_FRAME_DELTAS = False
 LOG_BUG_MOVEMENT = True
+
+FRAMES_PER_SECOND = 64
+SYNCH_TO_FRAME = FRAMES_PER_SECOND / 2
 
 NULL_LOCATION = (None, None)
 TILE_SIZE = 32
@@ -31,7 +34,7 @@ VECTOR_WEST  = pygame.Vector2(-1,0)
 FONT_SIZE = 16
 INFO_TEXT_OFFSET = pygame.Vector2(0, 0 - TILE_SIZE * 3 / 4)
 
-BEATBUG_SPAWN_TIMER_DURATION = 2000
+BEATBUG_SPAWN_TIMER_CYCLES = FRAMES_PER_SECOND * 2
 
 BASE_WUGGA_USEREVENT = pygame_gui.UI_TEXT_EFFECT_FINISHED + 1
 CHANNEL_READY_EVENT = BASE_WUGGA_USEREVENT + 0
@@ -39,7 +42,7 @@ CHANNEL_READY_EVENT = BASE_WUGGA_USEREVENT + 0
 ASSISTANT_BUTTON_SPACER = TILE_SIZE / 2
 
 class SuspendAction(Enum):
-    ENTERED = 0
+    SUSPENDED = 0
     EXTENDED = 1
 
 def x(coords):
@@ -91,6 +94,15 @@ def get_direction_vector(bearing):
   
 def add_tuples(tup1, tup2):
     return tuple(map(lambda i, j: i + j, tup1, tup2))
+
+def get_synchronised_cycle(cycle):
+    rem = cycle % SYNCH_TO_FRAME
+    if rem == 0:
+        # this cycle is a synch frame
+        return cycle
+    else:
+        # wait for next synch frame
+        return cycle - rem + SYNCH_TO_FRAME
 
 def log(level, message):
     if level <= LOGGING_LEVEL:
