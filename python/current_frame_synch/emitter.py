@@ -1,5 +1,6 @@
 import pygame
 from enum import Enum
+import globals as g
 from globals import *
 from timeline_logger import timeline_logger
 
@@ -7,12 +8,13 @@ class Emitter(pygame.sprite.Sprite):
 
     _current_id = 0
 
-    def __init__(self, synch_cycle, emit_sound, location, position, speed):
+    def __init__(self, synch_cycle, emit_sound, play_duration, location, position, speed):
         super().__init__()
 
         self.id = Emitter._current_id
         Emitter._current_id += 1
         self._sound = emit_sound
+        self._play_duration = play_duration
         self.location = location
         self.direction = VECTOR_SOUTH
         self.image = pygame.Surface((TILE_SIZE, TILE_SIZE))
@@ -22,33 +24,49 @@ class Emitter(pygame.sprite.Sprite):
         self.colour_suspended = "#888888"
         self.rect = pygame.Rect(position, (TILE_SIZE, TILE_SIZE))
 
-        self._x_delta = 0
-        self._y_delta = 0
+        self._x_fractional = 0.0
+        self._y_fractional = 0.0
 
         self._speed = speed
 
         # suspend until we synch
         self.suspended = True
         self._suspend_until = synch_cycle        
-        self.channel_id = None
+        self.play_counter = 0
 
         self.redraw()
+
+
+    @property
+    def hitbox(self):
+        offset = (self.rect.width - EMITTER_HITBOX_SIZE) / 2
+        return pygame.Rect(self.rect.left + offset, self.rect.top + offset, EMITTER_HITBOX_SIZE, EMITTER_HITBOX_SIZE)
 
 
     def redraw(self):
         # draw emitter icon
-        colour = self.colour
         if self.suspended:
             colour = self.colour_suspended
-        elif self.channel_id is not None:
+        elif self.play_counter > 0:
             colour = self.colour_play
+        else:
+            colour = self.colour
 
-        pygame.draw.circle(self.image, colour, (TILE_SIZE/2, TILE_SIZE/2), TILE_SIZE / 3)
+        centre_offset = int(TILE_SIZE/2)
+        pygame.draw.circle(self.image, colour, (centre_offset, centre_offset), EMITTER_RADIUS)
+        hitbox_offset = (self.rect.width - EMITTER_HITBOX_SIZE) / 2
+        hitbox_rect = pygame.Rect(hitbox_offset, hitbox_offset, EMITTER_HITBOX_SIZE, EMITTER_HITBOX_SIZE)
+        pygame.draw.rect(self.image, "yellow", hitbox_rect)
 
 
     def play(self, audio):
-        self.channel_id = audio.play_sound(self._sound, 200)
+        self.play_counter = self._play_duration
+        audio.play_sound(self._sound)
         self.redraw()
+
+
+    def playing(self):
+        return self.play_counter > 0
 
 
     def suspend(self, cycle, num_cycles):
@@ -59,7 +77,7 @@ class Emitter(pygame.sprite.Sprite):
             suspend_action = SuspendAction.EXTENDED
             timeline_logger.log(f"em{self.id}: suspend: extend by: {num_cycles} until:{self._suspend_until}", cycle)
         else:
-            self._suspend_until = cycle + num_cycles
+            self._suspend_until = cycle + num_cycles - 1
             self.suspended = True
             suspend_action = SuspendAction.SUSPENDED
             timeline_logger.log(f"em{self.id}: suspend: until:{self._suspend_until}", cycle)
@@ -80,8 +98,12 @@ class Emitter(pygame.sprite.Sprite):
         else:
             return None
 
+    def update(self, cycle, tiles, level_offset, beatbugs, audio):
+        if self.play_counter > 0:
+            self.play_counter -= 1
+            if self.play_counter == 0:
+                self.redraw()
 
-    def update(self, cycle, tiles, level_offset, beatbugs, audio):     
         if self.suspended == True:
             if cycle < self._suspend_until :
                 timeline_logger.log(f"em{self.id}: suspended", cycle)
@@ -90,6 +112,8 @@ class Emitter(pygame.sprite.Sprite):
                 timeline_logger.log(f"em{self.id}: unsuspended", cycle)
                 self.suspended = False
                 self.redraw()
+                # don't move the turn suspend ends
+                return
 
         exit_info = self.assistant.get_exits(self.rect.center, level_offset)
 
@@ -101,38 +125,41 @@ class Emitter(pygame.sprite.Sprite):
         # note 1: one of direction.x or direction.y will always be 0
         # note 2: in the pygame.Rect type the center (x,y) is a tuple and is managed 
         #         as an integer pair - this means rounding of fractions
-        
-        self._x_delta = self._x_delta + self.direction.x * 0.5
-        if(self._x_delta >= 1):
-            self._x_delta = self._x_delta - 1
-            self.rect.centerx = self.rect.centerx + 1
-        elif(self._x_delta <= -1):
-            self._x_delta = self._x_delta + 1
-            self.rect.centerx = self.rect.centerx - 1
+        #         storing fractional deltas for process when they reach a unit value
+       
+        x_fractional = self.direction.x * self._speed % 1
+        x_delta = self.direction.x * self._speed - x_fractional
 
-        self._y_delta = self._y_delta + self.direction.y * 0.5
-        if(self._y_delta >= 1):
-            self._y_delta = self._y_delta - 1
-            self.rect.centery = self.rect.centery + 1
-        elif(self._y_delta <= -1):
-            self._y_delta = self._y_delta + 1
-            self.rect.centery = self.rect.centery - 1
+        self._x_fractional += x_fractional
+        if self._x_fractional >= 1:
+            self._x_fractional -= 1
+            x_delta += 1
 
-        timeline_logger.log(f"em{self.id}: moveto: {self.rect.center}", cycle)
+        y_fractional = self.direction.y * self._speed % 1
+        y_delta = self.direction.y * self._speed - y_fractional
+
+        self._y_fractional += y_fractional
+        if self._y_fractional >= 1:
+            self._y_fractional -= 1
+            y_delta += 1
+
+        self.rect.centerx += x_delta
+        self.rect.centery += y_delta
+
+        moveto = "moveto"
+        if (self.rect.centerx % TILE_SIZE == int(TILE_SIZE/2) + 1 and 
+            self.rect.centery % TILE_SIZE == int(TILE_SIZE/2) + 1):
+            moveto = "MOVETO"
+
+        timeline_logger.log(f"em{self.id}: {moveto}: {self.rect.center}", cycle)
         
         # different tile?
         new_location = screen_to_grid(self.rect.center, level_offset)
         if self.location != new_location:
             self.location = new_location
-            # have we happened upon a bug?
-            for beatbug in beatbugs:
-                if beatbug.location == self.location:
-                    self.play(audio)
-        
-        tile_rect = get_tile_rect(self.location, level_offset)
 
         # is direction changing?
-        new_direction = self.get_direction(tile_rect, level_offset, exit_info)
+        new_direction = self.get_direction(level_offset, exit_info)
 
         if new_direction != self.direction:
             # direction is changing
@@ -140,7 +167,7 @@ class Emitter(pygame.sprite.Sprite):
             self.direction = new_direction
 
 
-    def get_direction(self, tile_rect, level_offset, exit_info):
+    def get_direction(self, level_offset, exit_info):
         # if we are past the centre of the current tile and
         # the exit in the current direction is not open,
         # find an available exit
@@ -153,8 +180,9 @@ class Emitter(pygame.sprite.Sprite):
         #  x2 > x1
         # -x1 > -x2
 
-        if self.rect.centerx * self.direction.x >= x(tile_rect.center) * self.direction.x:
-            
+        current_tile_centre = g.get_tile_rect(self.location, level_offset).center
+
+        if self.rect.centerx * self.direction.x >= x(current_tile_centre) * self.direction.x:
             if self.direction.x == 1 and E(exit_info) == False:
                 # try left, try right, then try reverse
                 if N(exit_info): return VECTOR_NORTH
@@ -166,7 +194,7 @@ class Emitter(pygame.sprite.Sprite):
                 elif N(exit_info): return VECTOR_NORTH
                 elif E(exit_info): return VECTOR_EAST
 
-        if self.rect.centery * self.direction.y >= y(tile_rect.center) * self.direction.y:
+        if self.rect.centery * self.direction.y >= y(current_tile_centre) * self.direction.y:
             if self.direction.y == 1 and S(exit_info) == False:
                 # try left, try right, then try reverse
                 if E(exit_info): return VECTOR_EAST

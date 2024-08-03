@@ -6,11 +6,11 @@ LOGGING_LEVEL = 3
 LOG_FRAME_DELTAS = False
 LOG_BUG_MOVEMENT = True
 
-FRAMES_PER_SECOND = 64
-SYNCH_TO_FRAME = FRAMES_PER_SECOND / 2
+FRAMES_PER_SECOND = 54
+SUSPEND_FRAMES = int(FRAMES_PER_SECOND / 2)
 
 NULL_LOCATION = (None, None)
-TILE_SIZE = 32
+TILE_SIZE = 27
 
 SCREEN_WIDTH_TILES = 32
 SCREEN_HEIGHT_TILES = 16
@@ -19,12 +19,16 @@ SCREEN_HEIGHT_PIXELS = SCREEN_HEIGHT_TILES * TILE_SIZE
 SCREEN_SIZE = (SCREEN_WIDTH_PIXELS, SCREEN_HEIGHT_PIXELS)
 DRAW_GRID = True
 
-BEATBUG_SIZE = 16
+BEATBUG_SIZE = 15
+BEATBUG_HITBOX_SIZE = 9
 BEATBUG_SPEED = TILE_SIZE * 2
 EMITTER_SPEED = TILE_SIZE
 
 H_CENTER_BEATBUG = (TILE_SIZE - BEATBUG_SIZE) / 2
 V_CENTER_BEATBUG = (TILE_SIZE - BEATBUG_SIZE) / 2
+
+EMITTER_RADIUS = TILE_SIZE / 3 + 0.5
+EMITTER_HITBOX_SIZE = 8
 
 VECTOR_NORTH = pygame.Vector2(0,-1)
 VECTOR_SOUTH = pygame.Vector2(0, 1)
@@ -34,10 +38,10 @@ VECTOR_WEST  = pygame.Vector2(-1,0)
 FONT_SIZE = 16
 INFO_TEXT_OFFSET = pygame.Vector2(0, 0 - TILE_SIZE * 3 / 4)
 
-BEATBUG_SPAWN_TIMER_CYCLES = FRAMES_PER_SECOND * 2
+BEATBUG_SPAWN_TIMER_CYCLE = FRAMES_PER_SECOND * 2
 
 BASE_WUGGA_USEREVENT = pygame_gui.UI_TEXT_EFFECT_FINISHED + 1
-CHANNEL_READY_EVENT = BASE_WUGGA_USEREVENT + 0
+#CHANNEL_READY_EVENT = BASE_WUGGA_USEREVENT + 0
 
 ASSISTANT_BUTTON_SPACER = TILE_SIZE / 2
 
@@ -64,6 +68,7 @@ def W(exit):
     return exit[3]
 
 def grid_to_screen(location, level_offset):
+    # returns topleft of a location's grid
     return ((location.x + level_offset.x) * TILE_SIZE, 
             (location.y + level_offset.y) * TILE_SIZE)
 
@@ -95,14 +100,15 @@ def get_direction_vector(bearing):
 def add_tuples(tup1, tup2):
     return tuple(map(lambda i, j: i + j, tup1, tup2))
 
-def get_synchronised_cycle(cycle):
-    rem = cycle % SYNCH_TO_FRAME
+def get_synchronised_cycle(cycle, speed):
+    rem = cycle % FRAMES_PER_SECOND    
+
     if rem == 0:
         # this cycle is a synch frame
         return cycle
     else:
         # wait for next synch frame
-        return cycle - rem + SYNCH_TO_FRAME
+        return cycle - rem + FRAMES_PER_SECOND
 
 def log(level, message):
     if level <= LOGGING_LEVEL:

@@ -13,6 +13,17 @@
                     "right": 30,
                     "bottom": 20
                 }
+            },
+            {
+                "type": "button",
+                "name": "test_tune_button",
+                "text": "Tune",
+                "rect": [0, 0, 80, 30], 
+                "anchors":
+                {
+                    "right": 30,
+                    "bottom": 50
+                }                
             }
         ]
     }

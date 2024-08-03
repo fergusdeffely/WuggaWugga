@@ -21,18 +21,17 @@ class Game():
         # Pygame setup
         pygame.init()
         
-
         screen = pygame.display.set_mode(SCREEN_SIZE, flags=pygame.NOFRAME)
         self._out = Output(screen, Audio())        
 
         self._timeline = Timeline()
 
-        ui_manager = pygame_gui.UIManager(SCREEN_SIZE, "ui_theme.json")
+        ui_manager = pygame_gui.UIManager(SCREEN_SIZE, "config/ui_theme.json")
 
         mouse = Mouse()
         
         # this will eventually be moved to a level select screen
-        level = Level("level1.json", self._out, self._timeline)
+        level = Level("config/level1.json", self._out, self._timeline)
 
         self._ui = UI(ui_manager, self._out, mouse, level)
 
@@ -49,7 +48,7 @@ class Game():
                     sys.exit()
                 
                 if event.type == pygame.MOUSEBUTTONUP:
-                    log(3, f"Event: MouseButtonUp : {event.button} at {screen_to_grid(event.pos, self._ui.level.grid_offset)}")
+                    log(5, f"Event: MouseButtonUp : {event.button} at {screen_to_grid(event.pos, self._ui.level.grid_offset)}")
                     if event.button == 1:
                         if self._ui.level.runstate == LevelRunState.RUNNING:
                             self._ui.level.handle_click_button1(cycle, event.pos, self._timeline, self._ui.mouse)
@@ -62,12 +61,8 @@ class Game():
                         self._ui.handle_keydown(event.key, self._ui.mouse)
 
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
-                    log(3, f"Event{event.type}: pygame_gui.UI_BUTTON_PRESSED : {event}")
+                    log(5, f"Event{event.type}: pygame_gui.UI_BUTTON_PRESSED : {event}")
                     self._ui.handle_gui_event(cycle, event, self._timeline)
-
-                if event.type == CHANNEL_READY_EVENT:
-                    log(3, f"Event{event.type}: Channel Ready: {event}")
-                    self._ui.level.on_channel_ready(event.code)
 
                 self._ui.manager.process_events(event)
 

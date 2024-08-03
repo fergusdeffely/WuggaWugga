@@ -12,13 +12,20 @@ class BeatBug(pygame.sprite.Sprite):
         self.id = BeatBug.current_id
         BeatBug.current_id += 1
         self.image = pygame.Surface((BEATBUG_SIZE, BEATBUG_SIZE))
-        self.image.fill("blue")
+        self.image.fill("blue")        
         self.rect = self.image.get_rect()
+        pygame.draw.rect(self.image, "yellow", self.hitbox)
         self.location = location
         self.direction = VECTOR_EAST
         self._centre_in_gridrect(self.location, level_offset, True, True)
         self._speed = BEATBUG_SPEED
         self._just_spawned = True
+
+
+    @property
+    def hitbox(self):
+        offset = (BEATBUG_SIZE - BEATBUG_HITBOX_SIZE) / 2
+        return pygame.Rect(self.rect.left + offset, self.rect.top + offset, BEATBUG_HITBOX_SIZE, BEATBUG_HITBOX_SIZE)
 
 
     def _centre_in_gridrect(self, location, level_offset, h_centre, v_centre):  
@@ -43,19 +50,20 @@ class BeatBug(pygame.sprite.Sprite):
         self.rect.centery = self.rect.centery + self.direction.y
         
         if LOG_BUG_MOVEMENT:
-            timeline_logger.log(f"bug{self.id}: moved to: {self.rect.center}", cycle)
+            moveto = "moveto"
+            if (self.rect.centerx % TILE_SIZE == int(TILE_SIZE/2) + 1 and 
+                self.rect.centery % TILE_SIZE == int(TILE_SIZE/2) + 1):
+                moveto = "MOVETO"
+
+            timeline_logger.log(f"bug{self.id}: {moveto}: {self.rect.center}", cycle)
 
         # check if the bug has entered a new tile
         current_location = screen_to_grid(self.rect.center, level.grid_offset)
 
         if self.location != current_location:
             self.location = current_location
-            # have we entered a tile with a emitter?
-            for emitter in level.emitters:
-                if emitter.location == self.location and emitter.suspended == False:
-                    emitter.play(audio)
 
-        tile = level.tiles[(self.location.x, self.location.y)]        
+        tile = level.tiles[(self.location.x, self.location.y)]
         # is direction changing?
         new_direction = self.get_direction(tile, level)
 
@@ -63,7 +71,13 @@ class BeatBug(pygame.sprite.Sprite):
             # direction is changing
             timeline_logger.log(f"bug{self.id}: at:{tile.rect.center} from:{self.direction} to:{new_direction}", cycle)
             self.direction = new_direction
-        
+
+        # check for collisions with emitters
+        for emitter in level.emitters:
+            if emitter.playing() == False:
+                if emitter.hitbox.colliderect(self.hitbox):
+                    emitter.play(audio)
+
 
     def get_direction(self, tile, level):
         # if we are past the centre of the current tile and

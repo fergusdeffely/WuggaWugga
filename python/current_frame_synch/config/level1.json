@@ -6,7 +6,8 @@
         "3x1_red":
         {
             "type": "path",
-            "emit_sound": "syntom_1",
+            "emit_sound": "syntom",
+            "play_duration": 16,
             "colour": "#ff0000",
             "shadow_colour": "#65393e",
             "speed": 1,
@@ -21,6 +22,7 @@
         {
             "type": "path",
             "emit_sound": "onekick",
+            "play_duration": 20,
             "colour": "#ffff00",
             "shadow_colour": "#65793e",
             "speed": 1,
@@ -33,6 +35,7 @@
         {
             "type": "path",
             "emit_sound": "synthbass",
+            "play_duration": 32,
             "colour": "#ad61b5",
             "shadow_colour": "#533357",
             "speed": 2,
@@ -46,15 +49,17 @@
         "4x1_green":
         {
             "type": "path",
-            "emit_sound": "ride3",
+            "emit_sound": "ride",
+            "play_duration": 16,
             "colour": "#00ff00",
             "shadow_colour": "#006500",
             "speed": 1,
             "nodes":
             {
-                "0:0":[1,1,0,0],
                 "0:1":[1,0,0,0],
-                "0:-1":[0,1,0,0]
+                "0:0":[1,1,0,0],
+                "0:-1":[1,1,0,0],
+                "0:-2":[0,1,0,0]
             }
         }                      
     }, 

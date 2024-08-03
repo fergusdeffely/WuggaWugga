@@ -9,11 +9,12 @@ class AssistantType(Enum):
 
 class Assistant(pygame.sprite.Sprite):
 
-    def __init__(self, assistant_type, emit_sound, nodes, colour, shadow_colour, speed, location=None):
+    def __init__(self, assistant_type, emit_sound, play_duration, nodes, colour, shadow_colour, speed, location=None):
         super().__init__()
 
         self.type = assistant_type
         self.emit_sound = emit_sound
+        self.play_duration = play_duration
         self.colour = colour
         self.shadow_colour = shadow_colour
         self.speed = speed
@@ -164,8 +165,8 @@ class Assistant(pygame.sprite.Sprite):
     def __repr__(self):
         repr = f"Assistant:type={self.type}\n    emit_sound={self.emit_sound}\n"
         repr = repr + f"    colour={self.colour}\n    shadow_colour={self.shadow_colour}\n"
-        repr = repr + f"    nodes={self.nodes}\n    rootnode_offset={self.rootnode_offset}"
-        repr = repr + f"    anchored={self.anchored}\n    highlight={self.highlight}"
-
+        repr = repr + f"    nodes={self.nodes}\n    rootnode_offset={self.rootnode_offset}\n"
+        repr = repr + f"    anchored={self.anchored}\n    highlight={self.highlight}\n"
+        repr = repr + f"    speed={self.speed}"
         return repr    
 

@@ -40,7 +40,7 @@ class Level:
         spawn_beatbug_event = TimelineEvent(start_cycle=0, 
                                             on_run=self.spawn_beatbug, 
                                             loop=0, 
-                                            interval=BEATBUG_SPAWN_TIMER_CYCLES,
+                                            interval=BEATBUG_SPAWN_TIMER_CYCLE,
                                             tag="Spawn Beatbug Event")
         timeline.add_event(spawn_beatbug_event)
         
@@ -60,6 +60,7 @@ class Level:
         for assistant_name in data["assistants"].keys():
             assistant_type = self._parse_assistant_type(data["assistants"][assistant_name]["type"])
             emit_sound = data["assistants"][assistant_name]["emit_sound"]
+            play_duration = data["assistants"][assistant_name]["play_duration"]
             colour = pygame.Color(data["assistants"][assistant_name]["colour"])
             shadow_colour = pygame.Color(data["assistants"][assistant_name]["shadow_colour"])
             # lower the alpha for the shadow colour
@@ -72,7 +73,7 @@ class Level:
                 y = int(location_text[i+1:])
                 nodes[(x, y)] = exits
 
-            assistant = Assistant(assistant_type, emit_sound, nodes, colour, shadow_colour, speed)
+            assistant = Assistant(assistant_type, emit_sound, play_duration, nodes, colour, shadow_colour, speed)
             self.assistant_roster.append(assistant)
 
         # add the tiles
@@ -101,9 +102,9 @@ class Level:
 
     def update(self, cycle, audio):
         if self.runstate == LevelRunState.RUNNING:
-            # emitters need to know where bugs are and bugs need
-            # to know where emitters are            
+            # update emitters first
             self.emitters.update(cycle, self.tiles, self.grid_offset, self._bugs, audio)
+            # now, the beatbugs - this update also checks for collisions
             self._bugs.update(cycle, self, audio)
             for sprite_info in list(self._sprite_infos):
                 if sprite_info.update(cycle) == False:
@@ -163,13 +164,16 @@ class Level:
         if mouse.mode == MouseMode.SELECTION:
             location = screen_to_grid(event_pos, self.grid_offset)
             anchored_assistant = self.assistant_at(location)
+            # if an assistant has been clicked, suspend the emitter
             if anchored_assistant:
-                suspend_action = anchored_assistant.emitter.suspend(cycle, FRAMES_PER_SECOND)
-                if suspend_action == SuspendAction.SUSPENDED:
-                    countdown_text = SpriteInfoText(anchored_assistant.emitter, 
-                                                    INFO_TEXT_OFFSET,
-                                                    None, "#333333", True, "#cccccc", True)
-                    self._sprite_infos.append(countdown_text)
+                # but don't suspend emitters that are currently playing sounds
+                if anchored_assistant.emitter.play_counter <= 0:
+                    suspend_action = anchored_assistant.emitter.suspend(cycle, SUSPEND_FRAMES)
+                    if suspend_action == SuspendAction.SUSPENDED:
+                        countdown_text = SpriteInfoText(anchored_assistant.emitter, 
+                                                        INFO_TEXT_OFFSET,
+                                                        None, "#333333", True, "#cccccc", True)
+                        self._sprite_infos.append(countdown_text)
             return
 
         if self.selected_assistant == None:
@@ -183,13 +187,14 @@ class Level:
             assistant.anchored = True
             # create an emitter
 
-            synch_cycle = get_synchronised_cycle(cycle)
+            synch_cycle = get_synchronised_cycle(cycle, assistant.speed)
 
             emitter = Emitter(synch_cycle,
                               assistant.emit_sound,
+                              assistant.play_duration,
                               location,
                               get_tile_rect(location, self.grid_offset).topleft,
-                              assistant.speed * TILE_SIZE)
+                              assistant.speed)
             emitter.assistant = assistant
             assistant.emitter = emitter
             # emitter will initially be suspended to synch with track timing
@@ -197,7 +202,7 @@ class Level:
             countdown_text = SpriteInfoText(emitter, INFO_TEXT_OFFSET,
                                             None, "#333333", True, "#cccccc", True)
             self._sprite_infos.append(countdown_text)                                            
-            timeline_logger.log(f"level: create em{emitter.id} at: {emitter.rect.center} synch at: {synch_cycle}", cycle)
+            timeline_logger.log(f"em{emitter.id} create at: {emitter.rect.center} synch at: {synch_cycle}", cycle)
 
             self._assistants.add(assistant)
             self.emitters.add(emitter)
@@ -212,7 +217,6 @@ class Level:
         if mouse.mode == MouseMode.SELECTION:            
             location = screen_to_grid(position, self.grid_offset)
             anchored_assistant = self.assistant_at(location)
-            print(f"level.handle_click_button2 - anchored_assistant:{anchored_assistant}")
             if anchored_assistant:
                 # remove any associated info text            
                 for sprite_info in list(self._sprite_infos):
@@ -297,11 +301,4 @@ class Level:
     def spawn_beatbug(self):
         if(self._spawner_location):
             bug = BeatBug(self._spawner_location, self.grid_offset)
-            self._bugs.add(bug)
-
-            
-    def on_channel_ready(self, channel_id):
-        for emitter in self.emitters:
-            if emitter.channel_id == channel_id:
-                emitter.channel_id = None
-                emitter.redraw()
+            self._bugs.add(bug)            

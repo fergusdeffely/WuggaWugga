@@ -17,7 +17,7 @@ class UI():
         self.mouse = mouse
         self.level = level
 
-        with open("resources.json") as f:
+        with open("config/resources.json") as f:
             d = json.load(f)
             print(d)
             self._build_controls(d["main_ui"]["controls"])
