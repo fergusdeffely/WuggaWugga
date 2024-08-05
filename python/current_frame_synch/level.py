@@ -3,6 +3,7 @@ import copy
 import json
 from globals import *
 from timeline_logger import timeline_logger
+from timeline import Timeline
 from timeline_event import TimelineEvent
 from tracktile import TrackTile
 from assistant import Assistant
@@ -11,41 +12,33 @@ from emitter import Emitter
 from mouse import MouseMode
 from info_text import InfoText
 from info_text import SpriteInfoText
-
+from bugtrack import BugTrack
 
 class LevelRunState(Enum):
     INITIALISING = 0
     RUNNING = 1
     PAUSED = 2
+    PLAY_TUNE = 3
 
 
-class Level:
+class Level():
 
-    def __init__(self, level_filename, out, timeline):
+    def __init__(self, level_filename):
         self.runstate = LevelRunState.INITIALISING
-        self._out = out
-        self.tiles = {}
         self._assistants = pygame.sprite.Group()
-        self._bugs = pygame.sprite.Group()
+        self._bugtracks = []
         self.emitters = pygame.sprite.Group()
         self._sprite_infos = []
         self.assistant_roster = []
         self.selected_assistant = None
+        self._timeline = Timeline()
         
         with open(level_filename) as f:
             d = json.load(f)
-            self._initialise(d)
-
-        # frequency, etc will eventually be specified in level json
-        spawn_beatbug_event = TimelineEvent(start_cycle=0, 
-                                            on_run=self.spawn_beatbug, 
-                                            loop=0, 
-                                            interval=BEATBUG_SPAWN_TIMER_CYCLE,
-                                            tag="Spawn Beatbug Event")
-        timeline.add_event(spawn_beatbug_event)
+            self._parse_config(d)
         
 
-    def _initialise(self, data):
+    def _parse_config(self, data):
 
         log(4, f"level data:\n{data}")
         self.width = data["width"]
@@ -57,6 +50,7 @@ class Level:
         print(f"level: grid_offset: {self.grid_offset}")
 
         # create the assistant roster
+        # TODO: move parse logic into Assistant
         for assistant_name in data["assistants"].keys():
             assistant_type = self._parse_assistant_type(data["assistants"][assistant_name]["type"])
             emit_sound = data["assistants"][assistant_name]["emit_sound"]
@@ -76,23 +70,14 @@ class Level:
             assistant = Assistant(assistant_type, emit_sound, play_duration, nodes, colour, shadow_colour, speed)
             self.assistant_roster.append(assistant)
 
-        # add the tiles
-        for location_text in data["tracks"].keys():
-            i = location_text.find(':')
-            x = int(location_text[:i])
-            y = int(location_text[i+1:])
-            location = pygame.Vector2(x,y)
-            position = grid_to_screen(location, self.grid_offset)
-            exits = data["tracks"][location_text]["exits"]
-            info = data["tracks"][location_text].get("info")
-            
-            tile = TrackTile(location, position, exits, info)
-            if info == 'F':
-                self._spawner_location = pygame.Vector2(x, y)
-            self.tiles[(x, y)] = tile
+        # add the tracks
+        for track_name in data["tracks"].keys():
+            self._bugtracks.append(BugTrack(track_name, 
+                                            data["tracks"][track_name], 
+                                            self._timeline, 
+                                            self.grid_offset))
 
         self.runstate = LevelRunState.RUNNING
-        print(self.tiles)
 
 
     def _parse_assistant_type(self, type_string):
@@ -100,38 +85,54 @@ class Level:
             return AssistantType.PATH
 
 
+    def play_tune(self, cycle, name):
+        self.runstate = LevelRunState.PLAY_TUNE
+        track = {32:"onekick", 64:"onekick", 96:"synthbass", 128:"onekick"}
+        self.tune = Tune([track])
+        self.tune.play(cycle)
+
+
     def update(self, cycle, audio):
+        self._timeline.update(cycle)
+        
         if self.runstate == LevelRunState.RUNNING:
             # update emitters first
-            self.emitters.update(cycle, self.tiles, self.grid_offset, self._bugs, audio)
-            # now, the beatbugs - this update also checks for collisions
-            self._bugs.update(cycle, self, audio)
+            self.emitters.update(cycle, self.grid_offset)
+            # note: track updates move bugs and check for collisions
+            for bugtrack in self._bugtracks:
+                bugtrack.update(cycle, self, audio)
             for sprite_info in list(self._sprite_infos):
                 if sprite_info.update(cycle) == False:
                     self._sprite_infos.remove(sprite_info)
+        elif self.runstate == LevelRunState.PLAY_TUNE:
+            self.tune.play_at(cycle)
                 
 
     def draw(self, surface):
         if DRAW_GRID == True:
             self.draw_grid(surface)
-        for tile in self.tiles.values():
-            tile.draw(surface)
+        for bugtrack in self._bugtracks:
+            bugtrack.draw(surface)
         self._assistants.draw(surface)
         self.emitters.draw(surface)
-        self._bugs.draw(surface)
+        for bugtrack in self._bugtracks:
+            bugtrack.draw_beatbugs(surface)
         for sprite_info_text in self._sprite_infos:
             sprite_info_text.draw(surface)
 
 
     def pause(self):
         self.runstate = LevelRunState.PAUSED
+        self._timeline.pause()
 
 
     def unpause(self, paused_cycles):
-        self.runstate = LevelRunState.RUNNING
+        self.runstate = LevelRunState.RUNNING        
 
         for emitter in self.emitters:
             emitter.adjust_for_pause(paused_cycles)
+
+        self._timeline.unpause(paused_cycles)
 
 
     def draw_grid(self, surface):
@@ -148,19 +149,7 @@ class Level:
                              ((self.width + self.grid_offset.x)* TILE_SIZE, (y + self.grid_offset.y)*TILE_SIZE))
 
 
-    def get_exits(self, position):
-        location = screen_to_grid(position, self.grid_offset)
-        #print(f"get_exits: for location: {location}")
-
-        # is the requested location one of the track tiles?
-        for tile in self.tiles.values():
-            if tile.location == location:
-                return tile.exits
-            
-        return (0,0,0,0)
-
-
-    def handle_click_button1(self, cycle, event_pos, timeline, mouse):
+    def handle_click_button1(self, cycle, event_pos, mouse):
         if mouse.mode == MouseMode.SELECTION:
             location = screen_to_grid(event_pos, self.grid_offset)
             anchored_assistant = self.assistant_at(location)
@@ -268,10 +257,12 @@ class Level:
             # can't place over another assistant
             if self.assistant_at(location) is not None:
                 return False
-            tile = self.tiles.get((location.x, location.y))
-            if tile is not None:
-                if tile.info != 'F' and tile.info != 'T':
-                    track_tile_count += 1
+            
+            for bugtrack in self._bugtracks:
+                tile = bugtrack.tiles.get((location.x, location.y))
+                if tile is not None:
+                    if tile.info != 'F' and tile.info != 'T':
+                        track_tile_count += 1
 
         if track_tile_count == 1:
             return True
@@ -296,9 +287,3 @@ class Level:
            return True
 
         return assistant_at_location is not None
-
-
-    def spawn_beatbug(self):
-        if(self._spawner_location):
-            bug = BeatBug(self._spawner_location, self.grid_offset)
-            self._bugs.add(bug)            

@@ -1,4 +1,5 @@
 import pygame
+import globals as g
 from globals import *
 from timeline_logger import timeline_logger
 
@@ -6,38 +7,39 @@ class BeatBug(pygame.sprite.Sprite):
 
     current_id = 0
 
-    def __init__(self, location, level_offset):
+    def __init__(self, location, level_offset, speed=g.DEFAULT_BEATBUG_SPEED):
         super().__init__()
 
         self.id = BeatBug.current_id
         BeatBug.current_id += 1
-        self.image = pygame.Surface((BEATBUG_SIZE, BEATBUG_SIZE))
+        self.image = pygame.Surface((g.BEATBUG_SIZE, g.BEATBUG_SIZE))
         self.image.fill("blue")        
         self.rect = self.image.get_rect()
-        pygame.draw.rect(self.image, "yellow", self.hitbox)
+        if g.DEBUG_SHOW_HITBOXES:
+            pygame.draw.rect(self.image, "yellow", self.hitbox)
         self.location = location
-        self.direction = VECTOR_EAST
+        self.direction = g.VECTOR_EAST
         self._centre_in_gridrect(self.location, level_offset, True, True)
-        self._speed = BEATBUG_SPEED
+        self._speed = speed
         self._just_spawned = True
 
 
     @property
     def hitbox(self):
-        offset = (BEATBUG_SIZE - BEATBUG_HITBOX_SIZE) / 2
-        return pygame.Rect(self.rect.left + offset, self.rect.top + offset, BEATBUG_HITBOX_SIZE, BEATBUG_HITBOX_SIZE)
+        offset = (g.BEATBUG_SIZE - g.BEATBUG_HITBOX_SIZE) / 2
+        return pygame.Rect(self.rect.left + offset, self.rect.top + offset, g.BEATBUG_HITBOX_SIZE, g.BEATBUG_HITBOX_SIZE)
 
 
     def _centre_in_gridrect(self, location, level_offset, h_centre, v_centre):  
-        position = grid_to_screen(location, level_offset)
+        position = g.grid_to_screen(location, level_offset)
         
         if h_centre == True:
-            self.rect.x = x(position) + H_CENTER_BEATBUG
+            self.rect.x = g.x(position) + g.H_CENTER_BEATBUG
         if v_centre == True:
-            self.rect.y = y(position) + V_CENTER_BEATBUG
+            self.rect.y = g.y(position) + g.V_CENTER_BEATBUG
 
     
-    def update(self, cycle, level, audio):
+    def update(self, cycle, level, bugtrack, audio):
 
         # don't move on the cycle the bug spawns in
         if(self._just_spawned == True):
@@ -46,26 +48,26 @@ class BeatBug(pygame.sprite.Sprite):
             return
 
         # update screen position (one of direction.x or direction.y will always be 0)
-        self.rect.centerx = self.rect.centerx + self.direction.x
-        self.rect.centery = self.rect.centery + self.direction.y
+        self.rect.centerx = self.rect.centerx + self.direction.x * self._speed
+        self.rect.centery = self.rect.centery + self.direction.y * self._speed
         
-        if LOG_BUG_MOVEMENT:
+        if g.LOG_BUG_MOVEMENT:
             moveto = "moveto"
-            if (self.rect.centerx % TILE_SIZE == int(TILE_SIZE/2) + 1 and 
-                self.rect.centery % TILE_SIZE == int(TILE_SIZE/2) + 1):
+            if (self.rect.centerx % g.TILE_SIZE == int(g.TILE_SIZE/2) + 1 and 
+                self.rect.centery % g.TILE_SIZE == int(g.TILE_SIZE/2) + 1):
                 moveto = "MOVETO"
 
             timeline_logger.log(f"bug{self.id}: {moveto}: {self.rect.center}", cycle)
 
         # check if the bug has entered a new tile
-        current_location = screen_to_grid(self.rect.center, level.grid_offset)
+        current_location = g.screen_to_grid(self.rect.center, level.grid_offset)
 
         if self.location != current_location:
             self.location = current_location
 
-        tile = level.tiles[(self.location.x, self.location.y)]
+        tile = bugtrack.tiles[(self.location.x, self.location.y)]
         # is direction changing?
-        new_direction = self.get_direction(tile, level)
+        new_direction = self.get_direction(tile, bugtrack, level.grid_offset)
 
         if new_direction != self.direction:
             # direction is changing
@@ -79,12 +81,12 @@ class BeatBug(pygame.sprite.Sprite):
                     emitter.play(audio)
 
 
-    def get_direction(self, tile, level):
+    def get_direction(self, tile, bugtrack, grid_offset):
         # if we are past the centre of the current tile and
         # the exit in the current direction is not open,
         # find an available exit
 
-        exit_info = level.get_exits(self.rect.center)
+        exit_info = bugtrack.get_exits(self.rect.center, grid_offset)
   
         # Note:
         # take a sample x-axis (o = origin)
@@ -130,6 +132,7 @@ class BeatBug(pygame.sprite.Sprite):
 
         return self.direction
   
+
     def change_bearing(self, new_bearing, tile_centre):
         self._bearing = new_bearing
 

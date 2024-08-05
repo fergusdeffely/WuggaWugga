@@ -54,9 +54,10 @@ class Emitter(pygame.sprite.Sprite):
 
         centre_offset = int(TILE_SIZE/2)
         pygame.draw.circle(self.image, colour, (centre_offset, centre_offset), EMITTER_RADIUS)
-        hitbox_offset = (self.rect.width - EMITTER_HITBOX_SIZE) / 2
-        hitbox_rect = pygame.Rect(hitbox_offset, hitbox_offset, EMITTER_HITBOX_SIZE, EMITTER_HITBOX_SIZE)
-        pygame.draw.rect(self.image, "yellow", hitbox_rect)
+        if g.DEBUG_SHOW_HITBOXES:
+            hitbox_offset = (self.rect.width - EMITTER_HITBOX_SIZE) / 2
+            hitbox_rect = pygame.Rect(hitbox_offset, hitbox_offset, EMITTER_HITBOX_SIZE, EMITTER_HITBOX_SIZE)
+            pygame.draw.rect(self.image, "yellow", hitbox_rect)
 
 
     def play(self, audio):
@@ -98,7 +99,7 @@ class Emitter(pygame.sprite.Sprite):
         else:
             return None
 
-    def update(self, cycle, tiles, level_offset, beatbugs, audio):
+    def update(self, cycle, level_offset):
         if self.play_counter > 0:
             self.play_counter -= 1
             if self.play_counter == 0:

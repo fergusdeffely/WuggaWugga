@@ -54,3 +54,7 @@ class Mouse(pygame.sprite.Sprite):
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)
+
+
+    def get_grid_location(self, grid_offset):
+        return screen_to_grid(self.rect.topleft, grid_offset)

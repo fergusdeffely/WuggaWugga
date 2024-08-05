@@ -1,6 +1,5 @@
 import pygame
-from enum import Enum
-from globals import *
+import globals as g
 from outlined_text import OutlinedText
 
 
@@ -78,7 +77,7 @@ class SpriteInfoText():
 
         self.position = self._sprite.rect.center + self._offset
         if self._centered:
-             self.position = (x(self.position) - self._text_surface.get_width() / 2, y(self.position))
+             self.position = (g.x(self.position) - self._text_surface.get_width() / 2, g.y(self.position))
 
 
     def draw(self, surface):
