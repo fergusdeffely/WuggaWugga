@@ -31,10 +31,10 @@ class Game():
                     pygame.quit()
                     sys.exit()
                 
-                result = self._screen.process_event(event)
-                if result is not None:
-                    g.log(3, f"game.run: creating GameScreen...")
-                    self._screen = GameScreen()
+                screen = self._screen.process_event(event)
+                if screen is not None:
+                    g.log(3, f"game.run: switching screen: {screen}...")
+                    self._screen = screen
 
             self._out.video.fill("black")
 

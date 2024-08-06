@@ -9,16 +9,11 @@ class AssistantType(Enum):
 
 class Assistant(pygame.sprite.Sprite):
 
-    def __init__(self, assistant_type, emit_sound, play_duration, nodes, colour, shadow_colour, speed, location=None):
+    def __init__(self, name, json, location=None):
         super().__init__()
 
-        self.type = assistant_type
-        self.emit_sound = emit_sound
-        self.play_duration = play_duration
-        self.colour = colour
-        self.shadow_colour = shadow_colour
-        self.speed = speed
-        self.nodes = nodes
+        self.name = name
+        self._parse_config(json)
         self.location = location
         self.anchored = False
         self.highlight = False
@@ -28,6 +23,26 @@ class Assistant(pygame.sprite.Sprite):
         self.rect.x -= self.rootnode_offset.x * TILE_SIZE
         self.rect.y -= self.rootnode_offset.y * TILE_SIZE
         self.redraw(self.shadow_colour)
+
+
+    def _parse_config(self, json):
+        if json["type"] == "path":
+            self.type =  AssistantType.PATH
+        else:
+            self.type = None        
+        self.emit_sound = json["emit_sound"]
+        self.play_duration = json["play_duration"]
+        self.colour = pygame.Color(json["colour"])
+        self.shadow_colour = pygame.Color(json["shadow_colour"])
+        # lower the alpha for the shadow colour
+        self.shadow_colour[3] = 150
+        self.speed = json["speed"]
+        self.nodes = {}
+        for location_text, exits in json["nodes"].items():
+            i = location_text.find(':')
+            x = int(location_text[:i])
+            y = int(location_text[i+1:])
+            self.nodes[(x, y)] = exits
 
 
     @property

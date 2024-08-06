@@ -4,7 +4,6 @@ from pygame_gui.core import ObjectID
 from pygame_gui.elements import UIButton
 
 from globals import *
-from level import LevelRunState
 from assistant import Assistant
 from mouse import MouseMode
 
@@ -17,3 +16,4 @@ class AssistantUIButton(UIButton):
         super().__init__(relative_rect=rect, text=text, manager=manager, object_id=object_id)
 
         self.assistant = assistant
+        self.name = assistant.name

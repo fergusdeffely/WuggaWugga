@@ -18,7 +18,7 @@ class GameScreen():
 
     def __init__(self):
         self.cycle = 0
-        self._buttons = []
+        self._buttons = {}
         self.level = Level("config/level1.json")
         self.mouse = Mouse()
         self._ui_manager = pygame_gui.UIManager(g.SCREEN_SIZE, "config/ui_theme.json")
@@ -28,7 +28,10 @@ class GameScreen():
             print(d)
             self._build_controls(d["main_ui"]["controls"])
 
-        self.rebuild_assistants_palette(self.level)
+        assistant_buttons = self.level.build_assistants_palette(self._ui_manager)
+
+        for button in assistant_buttons:
+            self._buttons[button.name] = button
 
 
     def _build_controls(self, controls):
@@ -61,57 +64,39 @@ class GameScreen():
                                        anchors=element_anchors,
                                        name=name)
 
-                self._buttons.append(button)
-
-
-    def rebuild_assistants_palette(self, level):
-        g.log(4, "building assistants palette...")
-        g.log(4, "Assistant list: ")
-        for assistant in level.assistant_roster:
-            g.log(4, assistant)
-
-        # clear any existing assistant buttons
-        for button in list(self._buttons):
-            if hasattr(button, "object_id"):
-                if button.object_id.class_id == "@assistant_buttons":
-                    self._buttons.remove(button)
-        
-        # build the assistants and their buttons
-        for i, assistant in enumerate(level.assistant_roster):
-            # first, the button
-            x = g.TILE_SIZE
-            y = g.ASSISTANT_BUTTON_SPACER * (i + 1) + i * g.TILE_SIZE
-
-            button = AssistantUIButton(rect=pygame.Rect((x, y), (g.TILE_SIZE * 2, g.TILE_SIZE)),
-                                       text="",
-                                       manager=self._ui_manager,
-                                       assistant=assistant)
-
-            self._buttons.append(button)
+                self._buttons[name] = button
 
 
     def handle_gui_event(self, cycle, event):
         if isinstance(event.ui_element, SimpleUIButton):
-            self.handle_ui_button_on_clicked(event.ui_element, cycle)
+            self.handle_ui_button_on_clicked(cycle, event.ui_element)
         elif isinstance(event.ui_element, AssistantUIButton):
             self.handle_assistant_button_on_clicked(event.ui_element)
 
 
-    def handle_ui_button_on_clicked(self, button, cycle):
+    def handle_ui_button_on_clicked(self, cycle, button):
         g.log(4, f"GameScreen.handle_ui_button_on_clicked {button.name}")
         if button.name == "pause_button":
-            if self.level.runstate == LevelRunState.RUNNING:
-                self.level.paused_at = cycle
-                timeline_logger.log(f"Timeline.pause", cycle)
-                self.level.pause()
-                button.set_text("Unpause")
-            else:               
-                paused_cycles = cycle - self.level.paused_at
-                timeline_logger.log(f"Timeline.unpause: paused for: {paused_cycles}", cycle)                
-                self.level.unpause(paused_cycles)
-                button.set_text("Pause")
+            self._handle_pause_button_pressed(cycle)
         elif button.name == "test_tune_button":
+            # first simulate pause button being pressed
+            self._handle_pause_button_pressed(cycle)
+            # now play the tune
             self.level.play_tune(cycle, "test_tune")
+
+
+    def _handle_pause_button_pressed(self, cycle):
+        button = self._buttons["pause_button"]
+        if self.level.runstate == LevelRunState.RUNNING:
+            self.paused_at = cycle
+            timeline_logger.log(f"GameScreen.pause", cycle)
+            self.level.pause(LevelRunState.PAUSED)
+            button.set_text("Unpause")
+        else:
+            paused_cycles = cycle - self.paused_at
+            timeline_logger.log(f"GameScreen.unpause: paused for: {paused_cycles}", cycle)
+            self.level.unpause(paused_cycles)
+            button.set_text("Pause")
 
 
     def handle_assistant_button_on_clicked(self, button):

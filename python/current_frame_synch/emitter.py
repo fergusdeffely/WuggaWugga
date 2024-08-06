@@ -75,7 +75,7 @@ class Emitter(pygame.sprite.Sprite):
 
         if self.suspended:
             self._suspend_until += num_cycles
-            suspend_action = SuspendAction.EXTENDED
+            suspend_action = g.SuspendAction.EXTENDED
             timeline_logger.log(f"em{self.id}: suspend: extend by: {num_cycles} until:{self._suspend_until}", cycle)
         else:
             self._suspend_until = cycle + num_cycles - 1
