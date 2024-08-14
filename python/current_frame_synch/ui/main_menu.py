@@ -4,8 +4,9 @@ import pygame_gui
 from enum import Enum
 
 import globals as g
-from ui.menu import Menu
+from ui.menu import Menu, MenuCommand
 from ui.game_screen import GameScreen
+from ui.barn_door_transition import BarnDoorTransition
 
 
 class MainMenu(Menu):
@@ -22,7 +23,10 @@ class MainMenu(Menu):
 
     def _on_continue(self):
         g.log(3, f"MainMenu._on_continue:")
-        return GameScreen()
+        transition = BarnDoorTransition(pygame.image.load("resources/left_canopy.png"),
+                                        pygame.image.load("resources/right_canopy.png"),
+                                        1, 1, 1)
+        return MenuCommand(GameScreen(), transition)
 
 
     def _on_new_game(self):

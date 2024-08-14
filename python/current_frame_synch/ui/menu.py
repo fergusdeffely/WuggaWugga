@@ -6,6 +6,15 @@ import globals as g
 from ui.menu_uibutton import MenuUIButton
 
 
+class MenuCommand():
+    def __init__(self, screen, transition):
+        self.screen = screen
+        self.transition = transition
+
+    def __repr__(self):
+        return f"MenuCommand: screen = {self.screen}, transiton = {self.transition}"
+
+
 class Menu():
 
     def __init__(self, ui_manager, options, top, left):
@@ -57,7 +66,7 @@ class Menu():
                 self._selected_id = 0
             self.selected_button.select()
         elif key == pygame.K_RETURN or key == pygame.K_SPACE:
-            # pygame gui doesn't support keyboard activation of buttons
+            # pygame-gui doesn't support keyboard activation of buttons
             # workaround is to simulate a UI_BUTTON_PRESSED event
             event_data = {'ui_element': self._buttons[self._selected_id]}
             button_pressed_event = pygame.event.Event(pygame_gui.UI_BUTTON_PRESSED, event_data)

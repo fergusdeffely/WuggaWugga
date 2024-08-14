@@ -5,6 +5,7 @@ import globals as g
 from wugga_io import Output
 from ui.game_screen import GameScreen
 from ui.menu_screen import MenuScreen
+from ui.barn_door_transition import TransitionState
 from audio import Audio
 
 
@@ -19,6 +20,7 @@ class Game():
         self._out = Output(surface, Audio())
 
         self._screen = MenuScreen()
+        self._transition = None
 
 
     def run(self):
@@ -31,15 +33,23 @@ class Game():
                     pygame.quit()
                     sys.exit()
                 
-                screen = self._screen.process_event(event)
-                if screen is not None:
-                    g.log(3, f"game.run: switching screen: {screen}...")
-                    self._screen = screen
+                command = self._screen.process_event(event)
+                if command is not None:
+                    g.log(3, f"game.run: received menucommand: {command}...")
+                    self._transition = command.transition
+                    self._screen = command.screen
 
             self._out.video.fill("black")
 
-            self._screen.update(time_delta, self._out.audio)
-            self._screen.draw(self._out.video)
+            if self._transition:
+                # screen transition is in progress
+                self._transition.update()
+                self._transition.draw(self._out.video)
+                if self._transition.transitionState == TransitionState.COMPLETE:
+                    self._transition = None
+            else:
+                self._screen.update(time_delta, self._out.audio)
+                self._screen.draw(self._out.video)
 
             pygame.display.update()
             

@@ -15,6 +15,14 @@ Investigate possibility of implementing a level editor
 
 Improve emitters:
  - level config to allow for instrument and pitch
+  * considering individual samples for each instrument/tone pair - means a lot
+    more sample/wavs, but means lmms can be used for composing and tune
+    components can then just be ported into the codebase...
+  * problem with this approach is that wav library would need to be extensive
+    to allow custom level building
+
+Obstacles:
+ - rocks, lava, etc - restrict where assistants can be placed
 
 Improve Assistants 2:
  - highlighting assistant should surround shape rather than nodes
@@ -65,7 +73,6 @@ Optimizations:
    of the anchored nodes - would avoid having to look them 
    up by root + offset
 
-Add a landing page and menu:
 
 Build some sprites
 
@@ -76,6 +83,8 @@ Build some sprites
 
 Complete:
 --------
+
+* Add a landing page and menu:
 
 * Mouse - don't show grid highlight when off the grid
 

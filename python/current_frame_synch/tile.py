@@ -9,7 +9,7 @@ class Tile(pygame.sprite.Sprite):
         self._parse_tile_config(location_text, grid_offset)
 
         self.image = pygame.Surface((g.TILE_SIZE, g.TILE_SIZE))
-        self.image.fill("grey")        
+        self.image.fill("grey")
         self.rect = pygame.Rect(self.position[0], self.position[1], g.TILE_SIZE, g.TILE_SIZE)
 
 

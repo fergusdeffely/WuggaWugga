@@ -13,15 +13,16 @@ class MenuScreen():
 
 
     def process_event(self, event):
+        command = None
         if event.type == pygame.KEYDOWN:
             self.menu.handle_keydown(event.key)
 
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
-            return self.menu.handle_button_pressed(event)
+            command = self.menu.handle_button_pressed(event)
 
         self._ui_manager.process_events(event)
 
-        return None
+        return command
 
 
     def update(self, time_delta, audio):
