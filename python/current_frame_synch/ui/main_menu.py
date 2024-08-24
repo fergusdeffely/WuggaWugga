@@ -4,6 +4,7 @@ import pygame_gui
 from enum import Enum
 
 import globals as g
+from enums import MenuOption, TransitionType
 from ui.menu import Menu, MenuCommand
 from ui.game_screen import GameScreen
 from ui.barn_door_transition import BarnDoorTransition
@@ -23,15 +24,12 @@ class MainMenu(Menu):
 
     def _on_continue(self):
         g.log(3, f"MainMenu._on_continue:")
-        transition = BarnDoorTransition(pygame.image.load("resources/left_canopy.png"),
-                                        pygame.image.load("resources/right_canopy.png"),
-                                        1, 1, 1)
-        return MenuCommand(GameScreen(), transition)
+        return MenuCommand(MenuOption.MAIN_CONTINUE, TransitionType.RISING_FLOOD_TRANSITION)
 
 
     def _on_new_game(self):
         g.log(3, f"MainMenu._on_new_game:")
-        return GameScreen()
+        return MenuCommand(MenuOption.MAIN_CONTINUE, TransitionType.RISING_FLOOD_TRANSITION)
 
 
     def _on_options(self):
@@ -39,6 +37,6 @@ class MainMenu(Menu):
 
 
     def _on_exit(self):
-        g.log(3, f"MainMenu._on_help:")
+        g.log(3, f"MainMenu._on_exit:")
         pygame.quit()
         sys.exit()

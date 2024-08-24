@@ -2,10 +2,8 @@ import pygame, sys
 import pygame_gui
 import globals as g
 
-from wugga_io import Output
 from ui.game_screen import GameScreen
 from ui.menu_screen import MenuScreen
-from ui.barn_door_transition import TransitionState
 from audio import Audio
 
 
@@ -16,8 +14,8 @@ class Game():
         # Pygame setup
         pygame.init()
         
-        surface = pygame.display.set_mode(g.SCREEN_SIZE, flags=pygame.NOFRAME)
-        self._out = Output(surface, Audio())
+        self._video = pygame.display.set_mode(g.SCREEN_SIZE, flags=pygame.NOFRAME)
+        self._audio = Audio()
 
         self._screen = MenuScreen()
         self._transition = None
@@ -39,17 +37,17 @@ class Game():
                     self._transition = command.transition
                     self._screen = command.screen
 
-            self._out.video.fill("black")
+            self._video.fill("black")
 
             if self._transition:
                 # screen transition is in progress
                 self._transition.update()
-                self._transition.draw(self._out.video)
-                if self._transition.transitionState == TransitionState.COMPLETE:
+                self._transition.draw(self._video)
+                if self._transition.complete:
                     self._transition = None
             else:
-                self._screen.update(time_delta, self._out.audio)
-                self._screen.draw(self._out.video)
+                self._screen.update(time_delta, self._audio)
+                self._screen.draw(self._video)
 
             pygame.display.update()
             

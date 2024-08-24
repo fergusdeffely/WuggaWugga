@@ -7,12 +7,12 @@ from ui.menu_uibutton import MenuUIButton
 
 
 class MenuCommand():
-    def __init__(self, screen, transition):
-        self.screen = screen
-        self.transition = transition
+    def __init__(self, menu_option, transition_type=None):
+        self.menu_option = menu_option
+        self.transition_type = transition_type
 
     def __repr__(self):
-        return f"MenuCommand: screen = {self.screen}, transiton = {self.transition}"
+        return f"MenuCommand: option = {self.option}, transiton_type = {self.transition_type}"
 
 
 class Menu():

@@ -1,3 +1,4 @@
+import numpy
 import pygame
 import pygame_gui
 from enums import *
@@ -51,6 +52,8 @@ ASSISTANT_BUTTON_SPACER = TILE_SIZE / 2
 
 DEBUG_SHOW_HITBOXES = True
 
+# Transitions
+MAX_FLOOD_LEVEL = 50
 
 class SuspendAction(Enum):
     SUSPENDED = 0
@@ -104,8 +107,10 @@ def get_direction_vector(bearing):
       
     return pygame.math.Vector2(0,0)
   
+
 def add_tuples(tup1, tup2):
     return tuple(map(lambda i, j: i + j, tup1, tup2))
+
 
 def get_synchronised_cycle(cycle, speed):
     rem = cycle % FRAMES_PER_SECOND    
@@ -123,3 +128,11 @@ def log(level, message):
 
 def get_html_colour(colour):
     return f"#{colour.r:02x}{colour.g:02x}{colour.b:02x}"
+
+
+def greyscale(surface):
+    arr = pygame.surfarray.pixels3d(surface)
+    mean_arr = numpy.dot(arr[:,:,:], [0.216, 0.587, 0.144])
+    mean_arr3d = mean_arr[..., numpy.newaxis]
+    new_arr = numpy.repeat(mean_arr3d[:, :, :], 3, axis=2)
+    return pygame.surfarray.make_surface(new_arr)

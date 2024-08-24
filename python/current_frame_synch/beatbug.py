@@ -13,7 +13,7 @@ class BeatBug(pygame.sprite.Sprite):
         self.id = BeatBug.current_id
         BeatBug.current_id += 1
         self.image = pygame.Surface((g.BEATBUG_SIZE, g.BEATBUG_SIZE))
-        self.image.fill("blue")        
+        self.image.fill("blue")
         self.rect = self.image.get_rect()
         if g.DEBUG_SHOW_HITBOXES:
             pygame.draw.rect(self.image, "yellow", self.hitbox)

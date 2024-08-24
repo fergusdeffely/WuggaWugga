@@ -45,17 +45,18 @@ class Assistant(pygame.sprite.Sprite):
             self.nodes[(x, y)] = exits
 
 
-    @property
-    def anchored_location(self):
-        if self.anchored == True:
-            return self.location
+    # TODO: seemingly unnecessary
+    # @property
+    # def anchored_location(self):
+    #     if self.anchored == True:
+    #         return self.location
         
-        return None
+    #     return None
 
 
-    @property
-    def ui_object_id(self):
-        return "#{}".format(self.colour)
+    # @property
+    # def ui_object_id(self):
+    #     return "#{}".format(self.colour)
 
 
     def build_surface(self):
