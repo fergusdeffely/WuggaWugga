@@ -11,7 +11,8 @@ import globals as g
 
 class RisingFloodTransitionState(Enum):
     RISING = 0
-    COMPLETE = 1
+    FADING = 1
+    COMPLETE = 2
 
 
 class FloodTile():
@@ -27,11 +28,7 @@ class FloodTile():
 class RisingFloodTransition():
     def __init__(self, surface, peaks, num_h_tiles, num_v_tiles):
         self._transitionState = RisingFloodTransitionState.RISING
-        self._throttle = 0
-
-        self._peak_locations = peaks
-        self._surface = surface
-        self._surface_stage_1 = g.greyscale(surface)
+        self._progress_counter = 0
 
         self._num_h_tiles = num_h_tiles
         self._num_v_tiles = num_v_tiles
@@ -39,6 +36,14 @@ class RisingFloodTransition():
         self._tile_width = int(surface.width / num_h_tiles)
         self._tile_height = int(surface.height / num_v_tiles)
 
+        self._peak_locations = peaks
+        self._surface = surface        
+        self._surface_stage_1 = g.fade(surface, g.FLOOD_FADE_1)
+        self._surface_stage_2 = g.fade(surface, g.FLOOD_FADE_2)
+        self._surface_stage_3 = g.fade(surface, g.FLOOD_FADE_3)
+        self._fade_percentage = g.FLOOD_FADE_3
+        self._fade_surface = g.fade(self._surface, self._fade_percentage)
+        
         # for larger resolutions of flood tiles, 
         # we need to pad out tiles to the right and bottom
         #
@@ -64,6 +69,7 @@ class RisingFloodTransition():
                 self._tiles[(x,y)] = FloodTile(x, y, 0)
 
         self._stage_1_flood_level = self._hillify()
+        self._stage_2_flood_level = self._stage_3_flood_level = self._stage_4_flood_level = self._stage_1_flood_level
 
 
     @property
@@ -159,44 +165,84 @@ class RisingFloodTransition():
 
 
     def update(self):
-        # just skip if everything is already flooded
-        if self._stage_1_flood_level > g.MAX_FLOOD_LEVEL:
-            self._transitionState = RisingFloodTransitionState.COMPLETE
-            return
 
+        if (self._transitionState == RisingFloodTransitionState.COMPLETE):
+            return
+        
         # only process every five frames
-        self._throttle += 1
-        if self._throttle % 5 != 0:
+        self._progress_counter += 1
+        if self._progress_counter % 3 != 0:
             return
 
-        flood_level_tiles = [tile for tile in self._tiles.values() if tile.flood_level == self._stage_1_flood_level]
+        if (self._transitionState == RisingFloodTransitionState.RISING):
 
-        for tile in flood_level_tiles:
-            tile.flood_stage = 1
+            if self._stage_1_flood_level <= g.MAX_FLOOD_LEVEL:
+                stage1_tiles = [tile for tile in self._tiles.values() if tile.flood_level == self._stage_1_flood_level]
+                for tile in stage1_tiles:
+                    tile.flood_stage = 1
 
-        self._stage_1_flood_level += 1
+                self._stage_1_flood_level += 1
+            
+            if (self._progress_counter >= 20 and self._stage_2_flood_level <= g.MAX_FLOOD_LEVEL):
+                stage2_tiles = [tile for tile in self._tiles.values() if tile.flood_level == self._stage_2_flood_level]
+                for tile in stage2_tiles:
+                    tile.flood_stage = 2
+
+                self._stage_2_flood_level += 1
+
+            if (self._progress_counter >= 40 and self._stage_3_flood_level <= g.MAX_FLOOD_LEVEL):
+                stage3_tiles = [tile for tile in self._tiles.values() if tile.flood_level == self._stage_3_flood_level]
+                for tile in stage3_tiles:
+                    tile.flood_stage = 3
+
+                self._stage_3_flood_level += 1
+
+                if self._stage_3_flood_level > g.MAX_FLOOD_LEVEL:
+                    self._transitionState = RisingFloodTransitionState.FADING
+
+        elif self._transitionState == RisingFloodTransitionState.FADING:            
+            self._fade_percentage -= 1            
+            if self._fade_percentage < 0:
+                self._transitionState = RisingFloodTransitionState.COMPLETE
+            else:
+                self._fade_surface = g.fade(self._surface, self._fade_percentage)
 
 
     def draw(self, surface):
-        surface.blit(self._surface, self._surface.get_rect())
 
-        stage_1_tiles = [tile for tile in self._tiles.values() if tile.flood_stage == 1]
+        if self._transitionState == RisingFloodTransitionState.FADING:
+            surface.blit(self._fade_surface, self._fade_surface.get_rect())
 
-        for tile in stage_1_tiles:
-            rect = pygame.Rect(tile.x * self._tile_width, 
-                               tile.y * self._tile_height, 
-                               self._tile_width, 
-                               self._tile_height)
-                               
-            surface_rect = self._surface.get_rect()
+        elif self._transitionState == RisingFloodTransitionState.RISING:
+            surface.blit(self._surface, self._surface.get_rect())
 
-            # clip border tiles to be contained in screen surface
-            if rect.bottom > surface_rect.bottom:
-                rect.bottom = surface_rect.bottom
-            if rect.right > surface_rect.right:
-                rect.right = surface_rect.right
+            flood_tiles = [tile for tile in self._tiles.values() if tile.flood_stage in (1, 2, 3, 4)]
 
-            surface.blit(self._surface_stage_1, dest=rect, area=rect)
+            for tile in flood_tiles:
+                rect = pygame.Rect(tile.x * self._tile_width, 
+                                tile.y * self._tile_height, 
+                                self._tile_width, 
+                                self._tile_height)
+                                
+                surface_rect = self._surface.get_rect()
+
+                # clip border tiles to be contained in screen surface
+                if rect.bottom > surface_rect.bottom:
+                    rect.bottom = surface_rect.bottom
+                if rect.right > surface_rect.right:
+                    rect.right = surface_rect.right
+
+                if tile.flood_stage == 1:
+                    stage_surface = self._surface_stage_1
+                elif tile.flood_stage == 2:
+                    stage_surface = self._surface_stage_2
+                elif tile.flood_stage == 3:
+                    stage_surface = self._surface_stage_3
+                elif tile.flood_stage == 4:
+                    surface.blit(self._black_surface, rect)
+                    continue
+
+                surface.blit(stage_surface, dest=rect, area=rect)
 
 
     def _log_tile_levels(self):

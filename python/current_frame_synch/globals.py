@@ -54,6 +54,10 @@ DEBUG_SHOW_HITBOXES = True
 
 # Transitions
 MAX_FLOOD_LEVEL = 50
+FLOOD_FADE_1 = 60
+FLOOD_FADE_2 = 35
+FLOOD_FADE_3 = 15
+
 
 class SuspendAction(Enum):
     SUSPENDED = 0
@@ -131,8 +135,16 @@ def get_html_colour(colour):
 
 
 def greyscale(surface):
-    arr = pygame.surfarray.pixels3d(surface)
-    mean_arr = numpy.dot(arr[:,:,:], [0.216, 0.587, 0.144])
+    arr = pygame.surfarray.pixels3d(surface)    
+    mean_arr = numpy.dot(arr[:, :, :], [0.216, 0.587, 0.144])    
     mean_arr3d = mean_arr[..., numpy.newaxis]
     new_arr = numpy.repeat(mean_arr3d[:, :, :], 3, axis=2)
     return pygame.surfarray.make_surface(new_arr)
+
+
+def fade(surface, percentage):
+    arr = pygame.surfarray.pixels3d(surface)
+    factor = percentage / 100
+    fade = arr * factor
+    return pygame.surfarray.make_surface(fade)
+
