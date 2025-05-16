@@ -7,6 +7,7 @@ class MenuOption(Enum):
     MAIN_EXIT = 3
 
 class TransitionType(Enum):
-    BARN_DOOR_TRANSITION = 0
-    RISING_FLOOD_TRANSITION = 1
+    TRANSITION_NONE         = 0
+    BARN_DOOR_TRANSITION    = 1
+    RISING_FLOOD_TRANSITION = 2
 

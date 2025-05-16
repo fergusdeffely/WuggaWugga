@@ -5,19 +5,15 @@ class TimelineLogger():
     def __init__(self):
         self._entries = []
         self.open_logfile()
+        self._cycle = 0
 
 
-    def start(self, t):
-        self._t = t
-        self.log("started", t)
-
-
-    def log(self, data, t=-1):
-        if t != self._t and t != -1:            
+    def log(self, data, cycle=-1):
+        if cycle != self._cycle and cycle != -1:
             self.write()
             self._entries.clear()
             self._entries.append(data)
-            self._t = t
+            self._cycle = cycle
         else:
             self._entries.append(data)
 
@@ -29,12 +25,12 @@ class TimelineLogger():
 
 
     def write(self):
-        msg = f"{self._t}"
+        msg = f"{self._cycle:08d}"
         for entry in self._entries:
             msg += f": {entry}"
         msg+= '\n'
         self._f.write(msg)
-        
+       
 
 # singleton
 timeline_logger = TimelineLogger()

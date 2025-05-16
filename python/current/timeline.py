@@ -18,22 +18,23 @@ class Timeline():
         self._paused = True
 
 
-    def unpause(self, gap):
+    def unpause(self, paused_cycles):
         for event in self._event_queue:
-            event.unpause(gap)
+            event.unpause(paused_cycles)
         self._paused = False
 
 
-    def update(self, frame_ticks):
+    def update(self, cycle):
         if self._paused == True:
             return
 
         cleanup = []
         
-        # run timeline events which are due
+        # run timeline events
         for event in self._event_queue:
-            if event.is_due(frame_ticks):
-                event.run(frame_ticks)
+            if event.is_due(cycle):
+                timeline_logger.log(f"running timeline event: {event.tag}", cycle)
+                event.run()
 
                 if event.loop != 0 and event.iterations >= event.loop:
                     cleanup.append(event)

@@ -1,5 +1,5 @@
 import time
-import pygame
+import pygame as pg
 from gensound import WAV, test_wav
 from gensound import Sine, Square, Sawtooth, Triangle, WhiteNoise
 from gensound.effects import Vibrato, Stretch, Downsample
@@ -32,9 +32,13 @@ syn3 = False
 syn4 = False
 rev1 = False 
 
+#pg.mixer.init()
+
 synthbass = WAV("synthbass.wav")
-synthbass.play()
+synthbass.realise(44100)
 onekick = WAV("onekick.wav")
+onekick.realise(44100)
+synthbass.play()
 onekick.play()
 time.sleep(2)
 

@@ -13,15 +13,40 @@ SUSPEND_FRAMES = int(FRAMES_PER_SECOND / 2)
 NULL_LOCATION = (None, None)
 TILE_SIZE = 32
 
-SCREEN_WIDTH_TILES = 32
-SCREEN_HEIGHT_TILES = 16
+#  --------------------------------------
+# |                                      |  < LEVEL_MARGIN_TOP
+# |      ------------------------------  | 
+# |     |                              | |
+# |     |      LEVEL_VIEW_WIDTH        | |
+# |     |              X               | |
+# |     |      LEVEL_VIEW_HEIGHT       | |
+# |     |                              | |
+# |     |                              | |
+# |     |                              | |
+# |      ------------------------------  | 
+#  --------------------------------------
+#     ^
+#  LEVEL_MARGIN_LEFT
+
+# level view margins are defined in terms of tiles
+LEVEL_MARGIN_LEFT = 3
+LEVEL_MARGIN_TOP = 1
+LEVEL_MARGIN_RIGHT = 1
+LEVEL_MARGIN_BOTTOM = 1
+LEVEL_VIEW_WIDTH = 28
+LEVEL_VIEW_HEIGHT = 14
+
+SCREEN_WIDTH_TILES = LEVEL_VIEW_WIDTH + LEVEL_MARGIN_LEFT + LEVEL_MARGIN_RIGHT
+SCREEN_HEIGHT_TILES = LEVEL_VIEW_HEIGHT + LEVEL_MARGIN_TOP + LEVEL_MARGIN_BOTTOM
 SCREEN_WIDTH_PIXELS = SCREEN_WIDTH_TILES * TILE_SIZE
 SCREEN_HEIGHT_PIXELS = SCREEN_HEIGHT_TILES * TILE_SIZE
 SCREEN_SIZE = (SCREEN_WIDTH_PIXELS, SCREEN_HEIGHT_PIXELS)
+
 DRAW_GRID = True
 
-BEATBUG_SIZE = 16
+BEATBUG_SIZE = 32
 BEATBUG_HITBOX_SIZE = 10
+BEATBUG_ANIM_STEP = 10
 
 DEFAULT_BEATBUG_SPEED = 2           # number of pixels moved in a frame
 DEFAULT_BEATBUG_SPAWN_FREQ = 4
@@ -49,6 +74,8 @@ BASE_WUGGA_USEREVENT = pygame_gui.UI_TEXT_EFFECT_FINISHED + 1
 #CHANNEL_READY_EVENT = BASE_WUGGA_USEREVENT + 0
 
 ASSISTANT_BUTTON_SPACER = TILE_SIZE / 2
+ASSISTANT_BUTTON_WIDTH = TILE_SIZE * 2
+ASSISTANT_BUTTON_HEIGHT = TILE_SIZE
 
 DEBUG_SHOW_HITBOXES = True
 

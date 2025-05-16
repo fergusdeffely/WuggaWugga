@@ -1,8 +1,10 @@
 import json
 import copy
 import pygame
-import pygame_gui
 from enum import Enum
+import pygame_gui
+from pygame_gui.elements import UIPanel
+
 import globals as g
 from mouse import Mouse
 from mouse import MouseMode
@@ -28,7 +30,14 @@ class GameScreen():
             print(d)
             self._build_controls(d["main_ui"]["controls"])
 
-        assistant_buttons = self.level.build_assistants_palette(self._ui_manager)
+        panel_height = len(self.level.assistant_roster) * (g.ASSISTANT_BUTTON_SPACER + g.TILE_SIZE) + g.ASSISTANT_BUTTON_SPACER
+        panel_width = g.ASSISTANT_BUTTON_WIDTH + g.ASSISTANT_BUTTON_SPACER * 2
+
+        self._assistants_panel = UIPanel(pygame.Rect(g.TILE_SIZE, g.TILE_SIZE * 2, panel_width, panel_height),
+                                         starting_height=4,
+                                         manager=self._ui_manager)
+
+        assistant_buttons = self.level.build_assistant_buttons(self._ui_manager, self._assistants_panel)
 
         for button in assistant_buttons:
             self._buttons[button.name] = button

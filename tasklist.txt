@@ -6,12 +6,25 @@ Defects:
 ------
 
 
-
 Features and improvements:
 -------------------------
 
+Add panel for side menu:
+ - This should be similar to the assistants roster, which looks fine.
+ - Also, the mouse selection rect should only render within the level view.
+   Outside of that, use some kind of arrow cursor.
 
-Investigate possibility of implementing a level editor
+Add placeholder graphics
+ - These are changing following recent update - gonna go with more abstract
+   graphics. Cutsie/toon graphics require art skills, so that'll have to wait
+   for another universe. But still more of the abstract graphics to be added.
+
+Assistant overhaul:
+ - Now that paths are more like lines, assistants need to change accordingly.
+   It might be possible to keep the shapes, but alignment needs to account for
+   nodes - need to center assistant nodes on path nodes.
+ - highlighting assistant should surround shape rather than each of the 
+   constituent nodes
 
 Improve emitters:
  - level config to allow for instrument and pitch
@@ -23,14 +36,6 @@ Improve emitters:
 
 Obstacles:
  - rocks, lava, etc - restrict where assistants can be placed
-
-Improve Assistants 2:
- - highlighting assistant should surround shape rather than nodes
- - enforce placement rules for more complex shapes
-
-Moving emitters 2:
- - test more advanced shapes
- - test crossing bugtrack in more than one place
  
 Test fast beatbugs.
  - handle mid-movement cornering
@@ -50,9 +55,7 @@ Enhance drawing of shadow for selected assistant.
 Draw allowed placements underneath bugs, but over
 tracks.
 
-Implement a tile map:
-
-Add panel for side menu:
+Investigate possibility of implementing a level editor
 
 Add new assistant types:
  - splitters? tunnellers? (flatbugs?)
@@ -72,10 +75,6 @@ Optimizations:
  - When an assistant has been anchored, store the locations
    of the anchored nodes - would avoid having to look them 
    up by root + offset
-
-
-Build some sprites
-
 
 
 ----------------------------------------
@@ -155,6 +154,14 @@ Complete:
 * Investigate issues with multiple sounds playing simultaneously
  ** Not an audio issue - a sequencing issue. Sounds played out
     of synch/sequence can just be discordant
+    
+* Moving emitters 2:
+* - test more advanced shapes
+* - test crossing bugtrack in more than one place
+ 
+* NOT: Implement a tile map:
+ ** removing this one following changes to the overall graphics
+    tile map may not make sense/be necessary
  
 
 Defects Complete:

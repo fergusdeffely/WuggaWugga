@@ -1,0 +1,93 @@
+{
+    "width": 24,
+    "height": 12,
+    "assistants":
+    {
+        "3x1_red":
+        {
+            "type": "path",
+            "emit_sound": "syntom",
+            "play_duration": 20,
+            "colour": "#ff0000",
+            "shadow_colour": "#65393e",
+            "speed": 1,
+            "nodes":
+            {
+                "0:0":[1,1,0,0],
+                "0:1":[1,0,0,0],
+                "0:-1":[0,1,0,0]
+            }
+        },
+        "1x1_yellow":
+        {
+            "type": "path",
+            "emit_sound": "onekick",
+            "play_duration": 20,
+            "colour": "#ffff00",
+            "shadow_colour": "#65793e",
+            "speed": 1,
+            "nodes":
+            {
+                "0:0":[0,0,0,0]
+            }
+        },
+        "3x1_magenta":
+        {
+            "type": "path",
+            "emit_sound": "synthbass",
+            "play_duration": 32,
+            "colour": "#ad61b5",
+            "shadow_colour": "#533357",
+            "speed": 2,
+            "nodes":
+            {
+                "0:0":[1,1,0,0],
+                "0:1":[1,0,0,0],
+                "0:-1":[0,1,0,0]
+            }
+        },
+        "4x1_green":
+        {
+            "type": "path",
+            "emit_sound": "ride",
+            "play_duration": 16,
+            "colour": "#00ff00",
+            "shadow_colour": "#006500",
+            "speed": 1,
+            "nodes":
+            {
+                "0:1":[1,0,0,0],
+                "0:0":[1,1,0,0],
+                "0:-1":[1,1,0,0],
+                "0:-2":[0,1,0,0]
+            }
+        }
+    }, 
+    "paths": 
+    {
+        "path1":
+        {     
+            "nodes": ["3:6", "15:6", "15:3", "3:3", "3:6"],
+            "sparks":
+            {
+                "spark1": 
+                {
+                    "node": "3:6",
+                    "speed": 2
+                }
+            }
+        },
+        "path2":
+        {
+            "nodes": ["6:9", "12:9", "12:11", "6:11", "6:9"],
+            "sparks": 
+            {
+                "spark1": 
+                {
+                    "node": "6:9",
+                    "speed": 2
+                }
+            }
+        }
+    }
+}

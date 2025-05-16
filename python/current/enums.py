@@ -1,10 +1,13 @@
 from enum import Enum
 
-class AssistantType(Enum):
-    NONE = 0
-    PATH = 1
+class MenuOption(Enum):
+    MAIN_CONTINUE = 0
+    MAIN_NEW_GAME = 1
+    MAIN_OPTIONS = 2
+    MAIN_EXIT = 3
 
-class EmitterType(Enum):
-    NONE = 0
-    KICK = 1
-    BASS = 2
+class TransitionType(Enum):
+    TRANSITION_NONE         = 0
+    BARN_DOOR_TRANSITION    = 1
+    RISING_FLOOD_TRANSITION = 2
+

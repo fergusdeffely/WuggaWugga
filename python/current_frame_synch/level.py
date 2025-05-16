@@ -49,8 +49,15 @@ class Level():
         self.width = json["width"]
         self.height = json["height"]
 
-        self.grid_offset = pygame.Vector2((g.SCREEN_WIDTH_TILES - self.width) / 2, 
-                                          (g.SCREEN_HEIGHT_TILES - self.height) / 2)
+        self._level_view_rect = pygame.Rect(g.LEVEL_MARGIN_LEFT * g.TILE_SIZE,
+                                            g.LEVEL_MARGIN_TOP * g.TILE_SIZE,
+                                            g.LEVEL_VIEW_WIDTH * g.TILE_SIZE,
+                                            g.LEVEL_VIEW_HEIGHT * g.TILE_SIZE)
+
+        level_view_left = g.LEVEL_MARGIN_LEFT + (g.LEVEL_VIEW_WIDTH - self.width) / 2
+        level_view_top = g.LEVEL_MARGIN_TOP + (g.LEVEL_VIEW_HEIGHT- self.height) / 2
+
+        self.grid_offset = pygame.Vector2(level_view_left, level_view_top)
 
         print(f"level: grid_offset: {self.grid_offset}")
 
@@ -65,23 +72,25 @@ class Level():
         self.runstate = LevelRunState.RUNNING
 
 
-    def build_assistants_palette(self, ui_manager):        
+    def build_assistant_buttons(self, ui_manager, panel):
         g.log(4, "level: building assistants palette...")
         g.log(4, "level: Assistant list: ")
         for assistant in self.assistant_roster:
             g.log(4, f"           {assistant}")
 
+
         # build the assistants and their buttons
         buttons = []
         for i, assistant in enumerate(self.assistant_roster):
             # first, the button
-            x = g.TILE_SIZE
-            y = g.ASSISTANT_BUTTON_SPACER * (i + 1) + i * g.TILE_SIZE
+            x = g.ASSISTANT_BUTTON_SPACER
+            y = g.ASSISTANT_BUTTON_SPACER * (i + 1) + i * g.ASSISTANT_BUTTON_HEIGHT
 
-            button = AssistantUIButton(rect=pygame.Rect((x, y), (g.TILE_SIZE * 2, g.TILE_SIZE)),
+            button = AssistantUIButton(rect=pygame.Rect((x, y), (g.ASSISTANT_BUTTON_WIDTH, g.ASSISTANT_BUTTON_HEIGHT)),
                                        text="",
                                        manager=ui_manager,
-                                       assistant=assistant)
+                                       assistant=assistant,
+                                       container=panel)
 
             buttons.append(button)
         
@@ -113,6 +122,8 @@ class Level():
                 
 
     def draw(self, surface):
+        pygame.draw.rect(surface, "#75757575", self._level_view_rect, width=1)
+
         if g.DRAW_GRID == True:
             self.draw_grid(surface)
         for bugtrack in self._bugtracks:

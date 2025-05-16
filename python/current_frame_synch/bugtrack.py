@@ -45,8 +45,12 @@ class BugTrack():
         for tile in self.tiles.values():
             tile.draw(surface)
 
+
     def draw_beatbugs(self, surface):
-        self._beatbugs.draw(surface)
+        #self._beatbugs.draw(surface)
+
+        for beatbug in self._beatbugs:
+            beatbug.draw(surface)
 
 
     def get_exits(self, position, grid_offset):
